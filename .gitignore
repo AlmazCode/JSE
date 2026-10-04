@@ -26,5 +26,5 @@ Thumbs.db
 /.worktrees/
 /worktrees/
 
-# Course handouts stay local; generated report PDFs under docs/ are tracked
+# Local source materials stay untracked; generated PDFs under docs/ are tracked
 /*.pdf

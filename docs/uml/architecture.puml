@@ -1,5 +1,5 @@
 @startuml
-title JSE architecture version 1.0
+title JSE target architecture - planned game integration
 skinparam componentStyle rectangle
 component "demo\nTitleScene, ArenaScene, ShowcaseScene" as demo
 component "core\nJseEngine, SceneManager, Scene, EngineHost" as core
@@ -21,7 +21,6 @@ demo ..> physics
 demo ..> events
 demo ..> render
 core ..> input
-core ..> events
 platform ..> core : pump / paint callbacks
 platform ..> input
 platform ..> awtrender : prepare frame
@@ -36,6 +35,7 @@ ai ..> world : WorldView, Enemy
 physics ..> world
 note bottom of core
 Arena rules and theme choice live in demo.
+Core has no dependency on EventBus.
 The diagram describes planned code, not completed implementation.
 end note
 @enduml

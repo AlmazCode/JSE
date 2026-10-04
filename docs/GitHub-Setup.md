@@ -1,36 +1,33 @@
-# Публикация JSE на GitHub
+# GitHub Setup
 
-Локальный репозиторий уже инициализирован на ветке main. Перед публикацией убедитесь, что команда использует правильный аккаунт и нужный GitHub-репозиторий. Этот файл описывает команды публикации; они не выполняются автоматически.
+The repository is local. No GitHub repository or remote is created by these instructions.
 
-## Через сайт GitHub
+## First publication
 
-1. Создайте пустой репозиторий JSE в своём аккаунте или организации команды. Выберите нужную видимость. Не добавляйте README, .gitignore или LICENSE на сайте: локальный проект уже имеет начальный коммит.
-2. Скопируйте HTTPS или SSH URL репозитория.
-3. В каталоге проекта выполните команды, заменив `REPOSITORY_URL` на скопированный URL:
+Create an empty GitHub repository named `JSE` under the team's chosen account. Do not generate another README, .gitignore or license during creation. Review the source and choose a license separately if the team intends public reuse.
 
-```bash
-git remote add origin REPOSITORY_URL
+After reviewing the completed foundation locally, fast-forward main and add the URL copied from GitHub:
+
+```sh
+git switch main
+git merge --ff-only feature/emil-runtime-foundation
+git remote add origin <repository-url>
 git push -u origin main
 ```
 
-Если origin уже добавлен, сначала посмотрите `git remote -v` и используйте существующий адрес, когда он верный. Не заменяйте чужой remote автоматически.
+The feature branch contains the runtime and English documentation. The local fast-forward keeps its commits intact and makes the runnable version the default for first publication. For an existing shared repository, publish the feature branch and use a pull request instead. Existing commit history has not been rewritten.
 
-## Через GitHub CLI
+Add the three contributors as collaborators. Enable branch protection for main if supported by the account, require the Java 17 build check and use pull requests for integration. Do not store tokens or machine-specific credentials in the repository.
 
-Если вы используете gh и вошли в нужный аккаунт, можно создать приватный репозиторий и отправить готовый main одной командой:
+## Team checkout
 
-```bash
-gh repo create JSE --private --source=. --remote=origin --push
+```sh
+git clone <repository-url>
+cd JSE
+./mvnw clean verify
+java -jar target/jse-demo.jar
 ```
 
-Это альтернативный путь: не выполняйте его после создания того же репозитория через сайт. Для публичной видимости вместо --private используется --public.
+Use `mvnw.cmd` on Windows. Once the foundation has merged, start each feature branch from updated main. Coordinate changes to shared contracts before merging dependent modules.
 
-## После публикации
-
-- Откройте вкладку Actions и проверьте Java 17 build. Локальная проверка не подтверждает результат удалённого workflow.
-- Добавьте двух коллег в collaborators через настройки репозитория. GitHub-имена пользователей не указаны в ТЗ, поэтому CODEOWNERS пока не назначен.
-- Каждый клонирует проект и выполняет команды README. Windows использует mvnw.cmd.
-- Создайте Issues для ближайших E2/A1/Y1 через Implementation task. Назначайте исполнителей по их настоящим GitHub-профилям.
-- При необходимости включите правило защиты main с PR и успешной проверкой сборки.
-
-Документация: [создание существующего проекта на GitHub](https://docs.github.com/en/migrations/importing-source-code/using-the-command-line-to-import-source-code/adding-locally-hosted-code-to-github), [GitHub CLI repo create](https://cli.github.com/manual/gh_repo_create), [Java и Maven в GitHub Actions](https://docs.github.com/en/actions/tutorials/build-and-test-code/java-with-maven).
+The existing GitHub Actions workflow builds/tests the project on Java 17 and uploads the executable JAR. Local verification does not claim that an unpushed workflow has run on GitHub.

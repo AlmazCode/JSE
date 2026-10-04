@@ -1,944 +1,467 @@
-# JSE Техническое задание на 2D движок и демонстрационную игру
+# JSE Technical Specification
 
-Документ задаёт архитектуру Java Simple Engine для Final Exam по Software Design Patterns, работу Sabirzhanov Emil, Baktiyarova Aruzhan и Roziyeva Yasmina, критерии готовности и порядок завершения проекта к концу 9-й недели. Команда выбрала 2D-движок с демонстрационной игрой. Factory Method и Abstract Factory закреплены за Baktiyarova Aruzhan; рендеринг закреплён за Sabirzhanov Emil. Уровень подготовки и индивидуальные часы не используются для распределения задач.
+**Product:** Java Simple Engine, a small 2D desktop runtime with example applications.
 
-**Статус: готовое ТЗ, версия 1.0 от 4 октября 2026 года.** Документ фиксирует решения для реализации. Требования преподавателя указаны с источниками; остальные требования являются решениями проекта JSE. ТЗ и UML готовы к работе. Подготовлен базовый репозиторий: Maven Wrapper, пакеты, временная входная точка и GitHub Actions. Игровые классы и результаты их тестирования создаются по плану реализации.
+**Current milestone:** Runtime foundation, version 0.1.0. **Target release:** Engine and Arena example, version 1.0.0.
 
-**Начало работы:** прочитать разделы «Распределение работы», «Нормативные интерфейсы Java» и [план реализации](superpowers/plans/2026-10-04-jse-implementation.md). Инфраструктура E1 подготовлена. Sabirzhanov Emil начинает E2, Baktiyarova Aruzhan — A1, Roziyeva Yasmina — Y1. После публикации общих типов участники продолжают свои задачи параллельно по зависимостям плана. Первый совместный результат на 5-й неделе — окно с движущимся Player, созданным через spawner и фабрику семейства.
+**Contributors:** Sabirzhanov Emil; Baktiyarova Aruzhan; Roziyeva Yasmina.
 
-Изменение зафиксированного контракта требует обновления ТЗ, UML и всех потребителей в одном интеграционном изменении. Незавершённые чекбоксы относятся к будущей реализации, а не к неопределённым требованиям.
+This document defines implementation and acceptance contracts. Sections marked **Implemented** describe the current runtime. Sections marked **Planned** describe the game integration; they must not be read as claims about existing code.
 
-## Основания и требования курса
+## Product scope
 
-Основные источники находятся в корне проекта. Номера страниц соответствуют страницам PDF.
+JSE supplies fixed updates, scene lifecycle, physical-to-logical keyboard input, immutable geometry, preloaded images and interchangeable Java2D rendering. Its first example is a movable rectangle preview. The target Arena example combines themed entities, interchangeable enemy behavior, event-driven HUD/logging and composable graphics.
 
-| Требование курса | Источник | Как проект его выполняет | Доказательство на сдаче |
-| --- | --- | --- | --- |
-| Команда из 2–3 студентов | Syllabus, стр. 4 и 13 | Sabirzhanov Emil, Baktiyarova Aruzhan, Roziyeva Yasmina | Титульный лист и таблица вклада |
-| Минимум шесть различных паттернов, изучаемых в курсе | Defense Requirements, стр. 1; Syllabus, стр. 4 | Bridge, Decorator, Factory Method, Abstract Factory, Strategy, Observer | Шесть UML, соответствующие классы и шесть сценариев демонстрации |
-| Каждый студент самостоятельно реализует минимум два паттерна | Те же страницы | За каждым закреплены два паттерна и их проверки | История Git, индивидуальные пояснения и ответы на защите |
-| Все паттерны полностью реализованы и работают внутри единого проекта | Те же страницы | Общая игра использует фабрики, графику, AI и события | Сквозной запуск игры и последовательное включение возможностей |
-| Отчёт содержит Introduction, Main Body, Conclusion, Further Work | Defense Requirements, стр. 1; Syllabus, стр. 4 | Разделы итогового отчёта | PDF с соответствующей структурой |
-| Код Java или Go, скриншоты приложения, UML | Defense Requirements, стр. 1; Syllabus, стр. 5 | Java, реальные скриншоты, диаграммы классов и последовательностей | PDF и исходники |
-| PDF-отчёт и ZIP с исходниками отправляются в Moodle | Те же страницы | Два самостоятельных файла | Проверка вложений после загрузки |
-| Сдача до конца 9-й недели, защита на 10-й | Syllabus, стр. 5 | Рабочий продукт к концу 8-й недели, сдача на 9-й | План ниже и журнал проверки сдачи |
-| Применение SOLID показывается в итоговом отчёте | Syllabus, стр. 10 | Пять конкретных примеров из реализации | Раздел SOLID с кодом и объяснениями |
-| Оценка учитывает теорию, корректный код, документацию и ответы на вопросы | Syllabus, стр. 12 | Каждый объясняет проблему, структуру, преимущества и ограничения своих паттернов | Репетиция защиты и индивидуальная подготовка |
+The runtime must build and run before the game modules are available. Game-specific health, score, themes, AI and events remain outside core. Public project text is English.
 
-Defense Requirements, стр. 2 предлагает для Game Development Engine Bridge для графики, Strategy для AI и Factory для создания объектов. Это рекомендации к теме. Обязательный 3D, редактор уровней, конкретная библиотека графики, количество страниц отчёта и продолжительность выступления в предоставленных файлах не установлены.
+The target release includes two renderer styles, two coherent entity families, three active enemy behaviors, two independently removable observers, a playable Arena and a rendering showcase. It excludes 3D, OpenGL, rigid-body simulation, networking, a level editor, ECS, plugins, scripting, saves and audio.
 
-Точная календарная дата и время Moodle-дедлайна отсутствуют в предоставленных PDF. План использует учебные недели 5–10, без предположений о календарных датах. Перед сдачей Sabirzhanov Emil сверяет фактическое время дедлайна в Moodle. Разрешение на изменение срока этим документом не подразумевается.
+## Build and package — Implemented
 
-Силлабус, стр. 3 разрешает генеративный ИИ для примеров и объяснений, сохраняя самостоятельную работу студентов. ТЗ служит материалом для проектирования; участники самостоятельно реализуют закреплённые части, понимают решения, указывают заимствованные источники и соблюдают требования преподавателя к использованию ИИ.
-
-## Цель и границы продукта
-
-JSE позволяет разработчику определить сцену, создать игровые объекты через фабрики, назначить AI, обработать события и отобразить результат. Показатель результата — две сцены, использующие общее ядро: полноценная Arena Demo и небольшая Rendering Showcase для проверки независимости графики от игровой логики.
-
-Основная демонстрация — игра с видом сверху: игрок собирает восемь предметов и избегает трёх противников. На той же сцене команда меняет реализацию рендеринга, включает графические декораторы, меняет стратегию противника и перезапускает игру с другой фабрикой семейства. Эти действия являются обязательными сценариями показа всех шести паттернов внутри проекта.
-
-Обязательный объём:
-
-- Окно, ввод с клавиатуры, игровой цикл и управление сценами.
-- Объекты Player, Enemy и Pickup, позиции и размеры, движение и простые прямоугольные столкновения.
-- Два режима рендеринга, изображения и геометрические примитивы, текст и диагностические элементы.
-- Две согласованные темы объектов через Abstract Factory.
-- Общий процесс создания объектов через Factory Method.
-- Три взаимозаменяемые стратегии AI.
-- События, подписка и отписка, два реальных наблюдателя.
-- Победа, поражение, пауза, перезапуск и диагностические команды для защиты.
-- Автоматические проверки ключевой логики, инструкции сборки, UML, скриншоты и отчёт.
-
-За пределами обязательной версии находятся 3D, OpenGL, физика твёрдых тел, сетевой режим, редактор уровней, ECS, плагины, скриптовый язык, сохранения, сложный pathfinding, анимационный редактор и аудио. Их можно описать в Further Work. Добавление функций допускается после готовности обязательной версии и не переносит её сроки.
-
-Дополнительные GoF-паттерны не являются целями этой версии. Наличие интерфейса, конфигурационного record, управляющего класса или стандартной библиотеки само по себе не засчитывается как отдельный реализованный паттерн.
-
-## Выбор технического подхода
-
-Используется один Maven-проект на Java 17 с Swing и Java2D. Swing и Java2D входят в JDK и позволяют команде явно реализовать цикл, модель объектов и шесть паттернов. Готовый игровой фреймворк не требуется.
-
-| Компонент | Зафиксированная версия или настройка |
+| Component | Project setting |
 | --- | --- |
-| Java | JDK 17; `maven.compiler.release=17`; UTF-8 |
-| Maven | 3.9.9 через Maven Wrapper |
-| Maven Wrapper Plugin | 3.3.2, `type=only-script` |
-| Maven Compiler Plugin | 3.13.0 |
-| Maven Surefire Plugin | 3.2.5 |
-| Maven Shade Plugin | 3.5.3; фаза `package`; `createDependencyReducedPom=false` |
-| Тесты | `org.junit.jupiter:junit-jupiter:5.10.2`, scope `test` |
-| Координаты проекта | `edu.jse:jse-demo:1.0.0`; packaging `jar` |
-| Исполняемый файл | `target/jse-demo.jar`; `finalName=jse-demo` |
-| Main-Class | `jse.demo.DemoApplication` через ManifestResourceTransformer |
+| Language / bytecode | Java 17, UTF-8 |
+| Maven Wrapper | Maven 3.9.9; wrapper scripts 3.3.2 |
+| Compiler / Surefire / Shade | 3.13.0 / 3.2.5 / 3.5.3 |
+| Tests | JUnit Jupiter 5.10.2, test scope only |
+| Coordinates | `dev.jse:jse-demo:0.1.0` |
+| Entry point | `jse.demo.DemoApplication` |
+| Output | `target/jse-demo.jar` |
+| Production dependencies | JDK only: Swing, Java2D, ImageIO |
 
-Java 17 упоминается в практической части силлабуса, стр. 8. Остальные версии — решения проекта для воспроизводимости, без заявления, что это последние релизы. Production-зависимости обязательной версии отсутствуют: Swing и Java2D предоставляются JDK.
+`./mvnw clean verify` compiles, tests and packages the executable JAR. `mvnw.cmd` supplies the Windows equivalent. The packaged JAR includes main resources, excludes tests and needs no network at runtime. A desktop display is required for the window; `--help` and automated tests can run headlessly.
 
-Java2D предоставляет операции для двумерных фигур, текста и изображений: [Graphics2D Java 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.desktop/java/awt/Graphics2D.html). Правила EDT и Key Bindings проверены по документации Oracle: [Event Dispatch Thread](https://docs.oracle.com/javase/tutorial/uiswing/concurrency/dispatch.html), [Key Bindings](https://docs.oracle.com/javase/tutorial/uiswing/misc/keybinding.html). Документация проверок: [JUnit 5.10.2](https://docs.junit.org/5.10.2/user-guide/). Maven-проверки и упаковка сверяются с официальной документацией: [Surefire 3.2.5](https://maven.apache.org/surefire-archives/surefire-3.2.5/maven-surefire-plugin/), [Shade 3.5.3](https://maven.apache.org/plugins-archives/maven-shade-plugin-3.5.3/), [Maven Wrapper](https://maven.apache.org/tools/wrapper/).
+Build dependency versions are project choices for reproducibility. Java 17 is the supported baseline; other operating systems and newer JDKs are considered verified only after an actual check.
 
-Команды сборки и запуска готовой реализации:
+## Ownership and milestones
 
-```text
-./mvnw clean verify
-./mvnw package
-java -jar target/jse-demo.jar
-```
-
-На Windows используются `mvnw.cmd` и та же команда `java -jar`. Maven Wrapper и указанные версии плагинов включаются в репозиторий в задаче E1. Рабочий JAR включает игровые ресурсы; тестовые зависимости в него не включаются. Команды выше доступны в базовом репозитории. Пока JAR запускает временный консольный DemoApplication; запуск игрового окна будет реализован в I1.
-
-Первая сборка может требовать сеть для Maven-зависимостей. Готовый JAR запускается с Java 17 без сети. На защите проверяется именно готовый JAR на выбранном ноутбуке; работа на других ОС подтверждается только после реального запуска.
-
-## Распределение работы
-
-| Участник | Два основных паттерна | Ответственность | Индивидуальный результат |
-| --- | --- | --- | --- |
-| Sabirzhanov Emil | Bridge, Decorator | Окно, игровой цикл и его связь с рисованием, клавиатурный ввод, графические объекты, два рендера, визуальные обёртки, загрузка изображений, Rendering Showcase | Два режима одной сцены, комбинируемые декораторы, графические проверки и UML |
-| Baktiyarova Aruzhan | Factory Method, Abstract Factory | Модель объектов, процесс создания, темы Forest и Space, конкретные продукты, начальное наполнение арены | Типизированные spawner-классы и две фабрики семейства, проверки обеих фабрик и UML |
-| Roziyeva Yasmina | Strategy, Observer | World, управление сценами, AI, движение, столкновения, очередь событий, правила Arena Demo, наблюдатели | Переключаемые стратегии и события с подпиской/отпиской в общей игре, проверки и UML |
-
-По два паттерна на человека обеспечивают требуемые шесть. Объём сопутствующих задач различается: Roziyeva Yasmina получает игровую логику, поэтому Sabirzhanov Emil берёт платформенную часть и игровой цикл, а Baktiyarova Aruzhan — не только фабрики, но и модель объектов, компоновку стартовой сцены и объединение отчёта.
-
-| Общая задача | Основной ответственный | Вклад остальных |
+| Owner | Pattern responsibilities | Module responsibilities |
 | --- | --- | --- |
-| Совместимые интерфейсы и интеграционный запуск | Roziyeva Yasmina | Sabirzhanov Emil и Baktiyarova Aruzhan проверяют соблюдение контрактов своих модулей |
-| Maven, Wrapper и упаковка JAR | Sabirzhanov Emil | Все проверяют запуск на своих машинах |
-| Диаграммы общего устройства и последовательностей | Roziyeva Yasmina | Каждый проверяет изображение своего модуля |
-| Структура PDF-отчёта и объединение разделов | Baktiyarova Aruzhan | Каждый пишет разделы своих паттернов и приводит доказательства |
-| Скриншоты и последовательность демонстрации | Sabirzhanov Emil | Baktiyarova Aruzhan готовит показ фабрик, Roziyeva Yasmina готовит AI и события |
-| Подготовка ZIP и сверка состава файлов | Sabirzhanov Emil | Baktiyarova Aruzhan проверяет PDF, Roziyeva Yasmina проверяет команды и тесты |
-| Репетиция защиты | Все | Каждый объясняет собственные паттерны и общий сценарий |
+| Sabirzhanov Emil | Bridge, Decorator | Math, core lifecycle, timing, platform, input, renderers, assets, preview/showcase |
+| Baktiyarova Aruzhan | Factory Method, Abstract Factory | Entity categories and products, themed factories, spawners, requests, initial arena layout |
+| Roziyeva Yasmina | Strategy, Observer | World/snapshots, AI, events, motion/collision, Arena rules, HUD/log and game scenes |
 
-Авторство закрепляется за реальным исполнителем. Совместная помощь допустима, но таблица вклада должна соответствовать фактической работе. Один участник не реализует чужие два паттерна целиком с последующей формальной передачей авторства.
+The shared runtime contracts are already available. Aruzhan and Yasmina coordinate GameObject, WorldView and BehaviorStrategy before implementing their dependent modules. Neither needs a temporary renderer or engine implementation.
 
-## Архитектура модулей
+The team tracks five milestones: foundation, integration, feature completion, release candidate and release. [Development status](Development-Status.md) maps these milestones to the team's remaining work. [Implementation plan](Implementation-Plan.md) records the executable steps.
 
-Используется один Maven-проект с разделением по Java-пакетам. Это упрощает сборку и интеграцию трёх частей. Логический движок отделяется от демонстрационных правил через пакеты и интерфейс Scene; отдельные Maven-модули для версии к защите не нужны.
+## Package boundaries
 
-```text
-src/main/java/jse/
-  core/          EngineConfig, EngineHost, EngineControl, JseEngine, Scene,
-                 SceneManager, EngineServices
-  world/         World, WorldView, EntityView, GameObject, Player, Enemy, Pickup,
-                 ObjectKind, ThemeId
-  math/          Vec2, Rect, Rgba
-  input/         InputSource, InputState, GameAction
-  platform/awt/  SwingHost, SwingInputSource, GamePanel
-  render/        Renderer, Graphic, SpriteGraphic, RectangleGraphic,
-                 GraphicDecorator, OutlineDecorator, HealthBarDecorator, HealthView, RenderMode
-  render/awt/    FrameRenderer, FilledRenderer, WireframeRenderer
-  assets/        AssetManager, SpriteId
-  factory/       EntitySpawner, PlayerSpawner, EnemySpawner, PickupSpawner,
-                 GameObjectFamilyFactory, ForestFactory, SpaceFactory, SpawnRequest
-  theme/forest/  ForestPlayer, ForestEnemy, ForestPickup
-  theme/space/   SpacePlayer, SpaceEnemy, SpacePickup
-  ai/            BehaviorStrategy, IdleBehavior, PatrolBehavior,
-                 ChaseBehavior, FleeBehavior, AiSystem
-  event/         GameEvent, EventBus, GameEventListener, Subscription,
-                 EntitySpawned, EntityRemoved, ItemCollected, HealthChanged,
-                 GameFinished, BehaviorChanged, RemovalReason, GameResult
-  physics/       MotionSystem, CollisionSystem, CollisionPair
-  demo/          DemoApplication, TitleScene, ArenaScene, ShowcaseScene,
-                 ArenaRules, HudObserver, EventLogObserver, DemoPreferences,
-                 ArenaStatus, ArenaLayout, SpawnLocator
-src/main/resources/
-  sprites/forest/
-  sprites/space/
-src/test/java/jse/
-docs/
-  JSE-Technical-Specification.md
-  uml/
-  report/
-  screenshots/
-README.md
-pom.xml
-mvnw
-mvnw.cmd
-.mvn/wrapper/
-```
-
-Каталоги этой структуры подготовлены в базовом репозитории. Java-пакеты пока содержат package-info.java и временный DemoApplication; остальные перечисленные классы являются целевыми исходниками для реализации. Данные `Vec2`, `Rect`, `Rgba`, `SpawnRequest`, `InputState` и события оформляются как небольшие неизменяемые value objects, где это уместно. Публичные имена и сигнатуры фиксированы в разделе «Нормативные интерфейсы Java».
-
-Направления зависимостей:
-
-- `demo` использует `core`, `world`, `factory`, `ai`, `event` и `render`.
-- `core` знает интерфейсы сцен, ввода и платформы; не знает условие победы и конкретные семейства.
-- `world` содержит сущности и состояние мира; не зависит от конкретных Swing-классов и сцен demo.
-- `factory` знает абстрактные типы объектов и контракты графики; конкретные семейства выбираются в `demo`.
-- `ai` работает с Enemy и read-only WorldView; не создаёт окна и не обновляет HUD.
-- `physics` определяет движение и пары пересечений; очки, здоровье и победу применяет `ArenaRules`.
-- `render` знает графические контракты; прямые вызовы Graphics2D ограничены `render/awt` и `platform/awt`.
-- `event` не зависит от конкретных наблюдателей demo.
-
-Не допускается перенос условия «собрать восемь предметов» в `JseEngine`, определение темы в `Renderer` или обновление UI из spawner-классов.
-
-## Основные данные и контракты
-
-Таблица объясняет ответственность контрактов. Точные типы и сигнатуры заданы в разделе «Нормативные интерфейсы Java» и обязательны для стыковки частей команды.
-
-| Контракт | Минимальное содержание | Владелец |
+| Package | Role | State |
 | --- | --- | --- |
-| EngineConfig | Размеры 960×540, UPS 60, максимум пять шагов за один pump; валидация положительных значений | Sabirzhanov Emil |
-| Scene | `onEnter(EngineServices)`, `update(dt, input)`, `render(Renderer)`, `onFocusLost()`, `onExit()` | Roziyeva Yasmina |
-| JseEngine | `start(scene)`, `pump(nowNanos)`, `requestScene(scene)`, `stop()` | Sabirzhanov Emil |
-| SwingHost | Создание окна, привязка pump и paint callbacks, старт/остановка UI-таймера | Sabirzhanov Emil |
-| InputSource | `snapshotAndConsumePressed()`, `clear()` | Sabirzhanov Emil |
-| InputState | Множество удерживаемых действий и однократных нажатий | Sabirzhanov Emil |
-| GameObject | `id`, `position`, `size`, `active`, `familyId`, базовый и текущий `Graphic`; чтение bounds | Baktiyarova Aruzhan |
-| Player | GameObject плюс health, maxHealth, speed | Baktiyarova Aruzhan |
-| Enemy | GameObject плюс speed и текущая BehaviorStrategy; waypoint принадлежат PatrolBehavior | Baktiyarova Aruzhan |
-| Pickup | GameObject плюс неизменяемая value=1 | Baktiyarova Aruzhan |
-| World | `enqueueAdd`, `enqueueRemove`, `commitChanges`, `view`, `forEachActive`, `findActive`; уникальные ID в пределах World | Roziyeva Yasmina |
-| WorldView | Неизменяемый снимок EntityView, позиции игрока, размеров арены; без операций изменения | Roziyeva Yasmina |
-| EntityView | Неизменяемые id, category, position, bounds и familyId для чтения и проверки столкновений | Roziyeva Yasmina, модель — Baktiyarova Aruzhan |
-| EntitySpawner<T> | `spawn(World, SpawnRequest): T`, переопределяемый `createObject(SpawnRequest): T` | Baktiyarova Aruzhan |
-| GameObjectFamilyFactory | `createPlayer`, `createEnemy`, `createPickup`, `familyId` | Baktiyarova Aruzhan |
-| Graphic | Ссылка на Renderer, `draw(Rect)`, `setRenderer(Renderer)` | Sabirzhanov Emil |
-| HealthView | `currentHealth()`, `maxHealth()`; только чтение, адаптация к Player или демонстрационным значениям | Sabirzhanov Emil, Player — Baktiyarova Aruzhan |
-| Renderer | Рисование представления sprite, заполненной фигуры, контура и текста; разрешение пропущенных sprite через AssetManager | Sabirzhanov Emil |
-| FrameRenderer | Renderer плюс `beginFrame(Graphics2D, width, height)` и `endFrame()`; используется только платформенной интеграцией | Sabirzhanov Emil |
-| BehaviorStrategy | `desiredVelocity(Enemy, WorldView, dt): Vec2` | Roziyeva Yasmina |
-| AiSystem | `update(World, WorldView, dt)`; получает объекты через forEachActive и записывает рассчитанную velocity | Roziyeva Yasmina |
-| MotionSystem | `update(World, dt)`; меняет позиции активных объектов через forEachActive | Roziyeva Yasmina |
-| EventBus | `subscribe(eventClass, listener): Subscription`, `publish(event)`, `dispatchPending()` | Roziyeva Yasmina |
-| Subscription | Идемпотентный `close()` для удаления подписки | Roziyeva Yasmina |
-| CollisionSystem | `findOverlaps(WorldView): List<CollisionPair>` | Roziyeva Yasmina |
-| ArenaRules | Применение столкновений, score, health, cooldown, win/lose; публикация связанных событий | Roziyeva Yasmina |
+| `jse.math` | Vec2, Rect, Rgba | Implemented |
+| `jse.input` | GameAction, InputState, InputSource | Implemented |
+| `jse.core` | EngineConfig, EngineHost, EngineControl, EngineServices, Scene, SceneManager, JseEngine | Implemented |
+| `jse.platform.awt` | SwingHost, GamePanel, SwingInputSource, KeyBindings, HostSettings | Implemented |
+| `jse.render` | Renderer, Graphic, RectangleGraphic, SpriteGraphic, HealthView, RenderMode | Implemented; decorators planned |
+| `jse.render.awt` | FrameRenderer, RenderStyle, FilledRenderer, WireframeRenderer | Implemented |
+| `jse.assets` | SpriteId, AssetManager, MissingSpriteStyle | Implemented |
+| `jse.demo` | LaunchSettings, PreviewSettings, PreviewScene, DemoApplication | Implemented; game scenes planned |
+| `jse.world` | GameObject, Player, Enemy, Pickup, World and snapshots | Planned |
+| `jse.factory` | SpawnRequest, category spawners and family factories | Planned |
+| `jse.theme.forest`, `jse.theme.space` | Six concrete products | Planned |
+| `jse.ai` | BehaviorStrategy, Idle/Patrol/Chase/Flee and AiSystem | Planned |
+| `jse.event` | EventBus, typed events, listener and subscription | Planned |
+| `jse.physics` | MotionSystem and CollisionSystem | Planned |
 
-SpawnRequest содержит позицию и положительный размер. Размер Player/Enemy в SpawnRequest должен быть ровно 24×24, Pickup — 16×16; несоответствие отклоняется. Начальные health, speed и value задаются правилами типа объекта и одинаковы для обеих тем. Стратегия Enemy назначается после создания через `setBehavior`; по умолчанию Enemy использует IdleBehavior. Для Player и Pickup стратегия не требуется.
+Core depends on InputSource, Renderer and EngineHost, never on World or EventBus. The desktop host implements core callbacks and prepares frames. Renderers depend on assets; graphics depend on Renderer. Game scenes compose factories, World, systems, rules and observers. No global engine or mutable service locator is used.
 
-Конструкторы зависимостей получают нужные интерфейсы явно. Глобальные singleton-сервисы, статический изменяемый World и доступ к всему Engine из любого объекта не используются.
+## Geometry and input — Implemented
 
-Scene.render выполняется только внутри подготовленного кадра. При переключении стиля всем Graphic текущей сцены, включая вложенные декораторы, передаётся выбранный Renderer. Сцена определяет порядок отрисовки, а конкретный renderer — способы рисования.
+`Vec2(double x, double y)` requires finite components. It supports add/subtract/scale, length and normalization. ZERO normalizes to ZERO. Normalizing extreme finite components avoids overflow by scaling before measuring length.
 
-## Реализация Bridge и Decorator
+`Rect(double x, double y, double width, double height)` requires finite endpoints and positive dimensions. `overlaps` means positive shared area; edge touching is false. `contains(Vec2)` includes the edge. `clampPosition(position, size)` constrains a top-left position for a positive-size object that fits the rectangle.
 
-### Bridge
+`Rgba(red, green, blue, alpha)` validates channels from 0 to 255. `parse` accepts #RRGGBB and #RRGGBBAA. Math and core contain no AWT geometry or color types.
 
-Проблема: вид графического объекта и способ его отображения должны изменяться независимо. Без разделения появляются отдельные классы для сочетаний sprite/rectangle и filled/wireframe.
+`InputState(Set<GameAction> held, Set<GameAction> pressed)` copies both sets. `InputSource.snapshotAndConsumePressed()` preserves held actions and consumes pending presses once. `clear()` removes both. The engine requests a new snapshot for every fixed update.
 
-Роли:
+SwingInputSource tracks physical keys separately. W and Up may both map to MOVE_UP: releasing W keeps the action held while Up remains down. A second physical alias does not repeat a logical press already held. OS repeat is ignored; a short press/release is retained until the next snapshot.
 
-- Abstraction: `Graphic`, содержащий ссылку на `Renderer`.
-- Refined Abstraction: `SpriteGraphic`, `RectangleGraphic`.
-- Implementor: `Renderer`.
-- Concrete Implementor: `FilledRenderer`, `WireframeRenderer`.
-- Client: сцена и графическая часть SwingHost.
+KeyBindings maps key codes to actions. Binding uses WHEN_IN_FOCUSED_WINDOW; unbinding restores previous local mappings, removes installed actions, restores focus traversal and releases the component reference. Window deactivation clears input and calls the scene's focus-loss handler.
 
-`SpriteGraphic.draw` делегирует показ sprite через Renderer; `RectangleGraphic.draw` делегирует показ фигуры. FilledRenderer показывает текстуру или заполненную фигуру. WireframeRenderer показывает контуры, подпись sprite и диагонали его прямоугольника. Оба режима реально рисуют в окне; логика игры, координаты и AI одинаковы.
+## Core lifecycle — Implemented
 
-Это две реализации визуального стиля на одном Java2D backend. ТЗ не заявляет два разных графических API или поддержку 3D. Контракт Renderer допускает различное визуальное представление объекта; wireframe не обязан сохранять текстуру, но обязан показывать положение, размеры и необходимые подписи.
-
-Клавиша F1 меняет реализацию Renderer на следующем безопасном кадре. Player, Enemy, Pickup, состояние игры и их ID сохраняются. В Renderer запрещены изменения игровых координат, здоровья, очков и выбранной стратегии.
-
-Проверка паттерна: обе графические абстракции работают с обеими реализациями, то есть проверяются четыре сочетания. В UML показываются две независимые ветви, соединённые композицией. Одного интерфейса с единственной рабочей реализацией недостаточно.
-
-### Decorator
-
-Проблема: одному и тому же графическому объекту нужны необязательные визуальные слои без создания классов вроде EnemyWithOutlineAndHealthBar.
-
-Роли:
-
-- Component: `Graphic`.
-- Concrete Component: `SpriteGraphic`, `RectangleGraphic`.
-- Base Decorator: `GraphicDecorator`, содержащий `Graphic wrapped`.
-- Concrete Decorator: `OutlineDecorator`, `HealthBarDecorator`.
-
-Обе обёртки совместимы с Graphic и делегируют `draw` вложенному объекту. OutlineDecorator рисует контур после базового изображения. HealthBarDecorator рисует полоску здоровья после базового изображения и получает read-only значения health/maxHealth через HealthView. В Arena Demo он применяется к Player; у Enemy и Pickup нет здоровья и полоска не создаётся. В Showcase используется самостоятельный демонстрационный HealthView.
-
-F2 включает контуры, F3 включает полоски здоровья. Декораторы комбинируются в установленном порядке: `HealthBarDecorator(OutlineDecorator(baseGraphic))`. После выключения базовое изображение остаётся. Повторное включение не наращивает цепочку: она каждый раз перестраивается из сохранённого baseGraphic.
-
-`setRenderer` проходит по всей цепочке. Декоратор не меняет Entity, её bounds, скорость, столкновения или семейство. Показываются четыре комбинации: без обёрток, только контур, только health bar, обе обёртки. Диагностические переключатели не являются дополнительными паттернами.
-
-### Кадр и ресурсы
-
-SwingHost использует JPanel и `paintComponent`; Graphics2D получается через копию контекста и освобождается в finally. FrameRenderer связывается с контекстом на время paint, после которого ссылки на контекст очищаются. Графика не удерживает Graphics2D между кадрами.
-
-Порядок отрисовки: фон, граница арены, Pickup, Enemy, Player, выделение выбранного Enemy, HUD и окно состояния. Sprite загружается из classpath один раз и кэшируется по SpriteId. Отсутствующий sprite заменяется заметным placeholder с сообщением об asset ID. Во время paint нет чтения файлов и загрузки ресурсов.
-
-Логическое разрешение фиксировано: 960×540. Изменение размера окна в обязательной версии отключено. Размеры задаются через область содержимого и `pack`, а не через предположение о высоте рамки окна. Масштабирование и камера остаются для Further Work.
-
-## Реализация Factory Method и Abstract Factory
-
-### Factory Method
-
-Проблема: процесс появления объекта одинаков — проверить параметры, создать объект, назначить ID и поставить добавление в очередь мира, — но конкретный тип продукта различается.
-
-`EntitySpawner<T extends GameObject>` содержит общий метод `spawn` и переопределяемый factory method `createObject`. Его конкретные наследники — `PlayerSpawner`, `EnemySpawner`, `PickupSpawner`. Их продукты — абстрактные категории Player, Enemy и Pickup и соответствующие конкретные объекты выбранного семейства.
-
-Последовательность `spawn`:
-
-1. Проверить существование World, конечность координат, положительные размеры, вхождение объекта в арену и вместимость мира.
-2. Вызвать переопределённый `createObject(request)`.
-3. Проверить, что продукт относится к ожидаемой категории и выбранному familyId.
-4. Попросить World назначить уникальный ID и поставить объект в очередь добавления.
-5. Вернуть объект вызывающему коду. До commitChanges объект считается подготовленным; после commitChanges он участвует в update/render.
-
-Добавление нового типа продукта требует собственного spawner и продукта; общий алгоритм spawn остаётся тем же. Большой `switch(type)` внутри единственной «фабрики» не принимается как реализация Factory Method.
-
-Событие EntitySpawned публикуется World при фактическом commit, а не при конструировании и не дважды. Baktiyarova Aruzhan реализует фабрики и сущности, Roziyeva Yasmina реализует очередь World и события; обе части используют зафиксированный ниже контракт.
-
-### Abstract Factory
-
-Проблема: сцена должна использовать согласованное семейство Player, Enemy и Pickup. Смена темы должна заменять всё семейство, сохраняя общие правила.
-
-Роли:
-
-- Abstract Factory: `GameObjectFamilyFactory` с `createPlayer`, `createEnemy`, `createPickup`.
-- Concrete Factory: `ForestFactory`, `SpaceFactory`.
-- Abstract Products: `Player`, `Enemy`, `Pickup`.
-- Concrete Products: `ForestPlayer`, `ForestEnemy`, `ForestPickup`; `SpacePlayer`, `SpaceEnemy`, `SpacePickup`.
-
-Все продукты имеют familyId; он неизменяемый. Отличия обязательной версии относятся к внешнему представлению: sprite, цвет и название. Health, размеры, скорости, AI-контракты, правила сбора и столкновений одинаковы. Это упрощает доказательство взаимозаменяемости и сравнение темы.
-
-Используются шесть собственных PNG: `sprites/forest/player.png`, `enemy.png`, `pickup.png` и соответствующие файлы `sprites/space/`. Размеры изображений — 24×24 для Player/Enemy и 16×16 для Pickup. Простые геометрические рисунки достаточны; происхождение ресурсов фиксируется в README и отчёте. Подготовка и оформление ресурсов входят в работу Sabirzhanov Emil, сопоставление SpriteId с продуктами — Baktiyarova Aruzhan.
-
-T меняет выбранную фабрику и пересоздаёт сцену целиком. Очки, здоровье и выбранные противники сбрасываются; выбранный стиль рендеринга и настройки декораторов сохраняются. Одновременное смешение Forest и Space в Arena Demo не допускается. Переключение темы не выдаётся за сохранение игрового состояния.
-
-### Совместная работа двух фабрик
-
-Factory Method отвечает за выбор категории продукта через наследника и общий процесс появления объекта. Abstract Factory отвечает за выбор семейства сразу для нескольких категорий. Например, EnemySpawner переопределяет `createObject` и внутри вызывает `familyFactory.createEnemy(request)`; ForestFactory и SpaceFactory создают свои Concrete Enemy.
-
-В проекте существуют две разные структуры: наследование spawner-классов и набор методов семейства продуктов. Делегирование объединяет их, но не превращает один метод создания в два засчитанных паттерна. На защите Baktiyarova Aruzhan отдельно показывает общий spawn-процесс и замену целого семейства.
-
-Система не вызывает конкретные конструкторы ForestEnemy/SpaceEnemy вне соответствующих фабрик. Выбор concrete factory и сборка зависимостей происходят в DemoApplication/при новом запуске сцены.
-
-## Реализация Strategy и Observer
-
-### Strategy
-
-Enemy хранит BehaviorStrategy и делегирует ей вычисление желаемой скорости. AiSystem вычисляет velocity; MotionSystem применяет её к позиции. Стратегия не рисует, не создаёт объекты и не начисляет очки.
-
-Обязательные стратегии:
-
-- PatrolBehavior: движение между двумя фиксированными waypoint в арене. При расстоянии до цели не более speed×dt происходит переход к следующей точке. Длина перехода ограничивается, чтобы не возникали колебания вокруг точки.
-- ChaseBehavior: направление от Enemy к Player, нормализованное и умноженное на speed. При отсутствии активного Player или нулевой дистанции возвращается нулевая скорость.
-- FleeBehavior: направление от Player к Enemy в радиусе 180 пикселей; за пределами радиуса возвращается нулевая скорость. При совпадении позиций используется стабильное направление вправо.
-
-IdleBehavior возвращает нулевую скорость и служит корректным стартовым поведением. Он не выделяется как четвёртый демонстрируемый паттерн.
-
-Tab выбирает следующий активный Enemy в порядке ID. B циклически назначает выбранному Enemy Patrol → Chase → Flee → Patrol. Смена происходит на границе update, сохраняет объект, координаты и ID. Для новой Patrol первая точка — текущая позиция, вторая — позиция на 120 пикселей правее с ограничением по арене; если обе совпали, вторая выбирается на 120 пикселей левее с тем же ограничением. Старое состояние стратегии не переносится в новую.
-
-Контекст Enemy/AiSystem работает через BehaviorStrategy, без `if/else` по конкретным классам стратегии. Выбор следующей стратегии по пользовательскому действию располагается в ArenaScene: она циклически переключает собственный индекс PATROL/CHASE/FLEE; это не алгоритм AI.
-
-### Observer
-
-EventBus хранит подписки по классу GameEvent. Publisher знает интерфейс GameEventListener, а не HudObserver или EventLogObserver. Подписка возвращает Subscription; close безопасен при повторном вызове.
-
-| Событие | Момент публикации | Основные данные |
-| --- | --- | --- |
-| EntitySpawned | World фактически добавил объект | tick, entityId, category, familyId |
-| EntityRemoved | World фактически удалил объект | tick, entityId, reason |
-| ItemCollected | ArenaRules впервые применил сбор Pickup | tick, playerId, pickupId, newScore |
-| HealthChanged | ArenaRules изменил Player.health | tick, playerId, oldHealth, newHealth |
-| GameFinished | Первый переход в WON или LOST | tick, result, finalScore |
-| BehaviorChanged | Сменена стратегия выбранного Enemy | tick, enemyId, behaviorName |
-
-HudObserver обновляет read-only отображаемые score/health/status. EventLogObserver ведёт последние 50 событий, показываемые в диагностической панели, и пишет краткие строки в консоль. У наблюдателей нет обязанности изменять друг друга. ArenaRules владеет истинным score и health, а HUD получает их отображение; отписка HUD не прекращает правила игры.
-
-`publish` ставит неизменяемое событие в очередь. `dispatchPending` получает снимок очереди, очищает её и доставляет снимок наблюдателям. События, опубликованные наблюдателем при доставке, обрабатываются при следующем dispatchPending, в следующем update. Добавленный во время доставки наблюдатель не получает текущее событие; уже закрытая до своего callback подписка не вызывается. Повторная активная подписка той же пары listener/eventClass отклоняется с IllegalArgumentException; личность listener сравнивается по ссылке.
-
-При onEnter сцена создаёт подписки, синхронизирует начальные значения HUD и затем создаёт мир. При onExit закрывает свои подписки и освобождает ссылки на сцену. Новый запуск создаёт новый World и EventBus; старые события и подписки не переносятся. EngineServices для новой сцены содержит новый EventBus, EngineConfig, исходный Renderer и EngineControl. Кэш ресурсов принадлежит рендерерам и используется ими совместно.
-
-L временно закрывает подписки EventLogObserver; повторное L создаёт новый EventLogObserver с пустым журналом и новыми подписками. Пока наблюдатель отключён, HUD и игра продолжают работать. Этот сценарий показывает динамическую отписку. Уведомления об объекте не вызывают прямой метод HUD из фабрики или CollisionSystem.
-
-host.showError останавливает Timer и показывает штатную Swing-панель ошибки; JseEngine отмечает отказ и перестаёт исполнять update. Окно остаётся видимым до закрытия пользователем.
-
-Ошибка callback считается ошибкой сцены: записывается событие/тип наблюдателя и причина, текущий update прерывается, Engine останавливает симуляцию и отображает диагностическое сообщение. Ошибки не проглатываются с продолжением потенциально некорректной игры.
-
-## Игровой цикл и управление состоянием
-
-SwingHost запускает короткие callbacks через Swing Timer с номинальным интервалом 16 мс. Timer не гарантирует точную частоту. Все изменения World, update, обработка ввода и paint происходят на EDT. Работа длительных операций на EDT запрещена; в этой версии загрузка небольших ресурсов происходит до начала симуляции.
-
-JseEngine использует `System.nanoTime` и accumulator. Fixed update имеет dt=1/60 секунды. За один callback допускается максимум пять update; слишком большой realDelta ограничивается 0.25 секунды, после пяти шагов отбрасывается целое число неисполненных шагов: `discarded = floor(accumulator / dt) * dt`, `accumulator -= discarded`, `droppedTime += discarded`. В droppedTime также добавляется часть realDelta сверх 0.25 секунды. Остаток accumulator всегда меньше dt. Отрисовка планируется через repaint после update. Фактические paint могут объединяться Swing; 60 UPS является целевой частотой логики при достаточной производительности, а не гарантией 60 FPS.
-
-Статусы ArenaScene: READY, RUNNING, PAUSED, WON, LOST. Engine продолжает обрабатывать управление и рисовать при PAUSED/WON/LOST, но движение, AI, столкновения и игровое время не обновляются. Enum статусов не заявляется как паттерн State.
-
-Порядок одного игрового update:
-
-1. Получить InputState. Однократные нажатия потребляются только первым update после получения; удерживаемые действия доступны всем update.
-2. Применить команды управления: scene switch, pause, restart, theme, renderer, decorators, выбор Enemy, AI, подписка.
-3. Если запрошена новая сцена, завершить текущий update и применить переход в безопасной точке. Если статус не RUNNING, пропустить шаги симуляции 4–9; доставка событий и рисование в шаге 10 продолжаются.
-4. Применить готовые добавления/удаления, в том числе диагностический spawn.
-5. Получить WorldView и рассчитать Player.velocity и Enemy.velocity.
-6. Обновить позиции через MotionSystem; ограничить bounds ареной.
-7. Получить свежий WorldView после движения и вычислить пары столкновений по новым bounds.
-8. ArenaRules применяет сбор Pickup и урон, публикует события и помечает объекты на удаление.
-9. World.commitChanges применяет удаления и новые добавления. Проверить исход игры.
-10. Доставить накопленные события и запросить перерисовку.
-
-При переходе SceneManager вызывает onExit один раз, закрывает старый EventBus, затем onEnter новой сцены один раз. Применяется последний запрос текущего update; оставшиеся catch-up update этого pump отменяются, accumulator обнуляется и ввод очищается. Первый pump только фиксирует время и запрашивает кадр; update начинается с накопленного dt. Немонотонный nowNanos отклоняется с IllegalArgumentException. Переходы не происходят посреди перебора сущностей или внутри paint.
-
-Окно закрывается штатно: остановка Timer, выход из сцены, закрытие подписок, освобождение window. Обращения к закрытому Graphics2D и повторный старт одного Timer недопустимы.
-
-## World и простая физика
-
-World хранит сущности в стабильном порядке ID и предоставляет WorldView из неизменяемых EntityView. Снимок не содержит изменяемых GameObject и прямых коллекций мира. AiSystem и MotionSystem получают реальные объекты через `World.forEachActive`, а ArenaRules находит их через `findActive(id)`, возвращающий Optional. Эти операции позволяют изменять состояние существующих объектов на EDT, но структурные добавления/удаления всё равно выполняются только очередями. BehaviorStrategy читает переданный Enemy и возвращает velocity, не изменяя его самостоятельно. Каждый World назначает возрастающие ID с единицы; ID не переиспользуются в рамках этого World.
-
-Добавления и удаления выполняются через очереди. Во время перебора исходная коллекция не меняется. Запрос удаления сразу помечает объект как pending removal; дальнейшие столкновения в текущем tick не применяют к нему повторные правила. Повторный запрос удаления безопасен и не создаёт второе EntityRemoved.
-
-Вместимость обязательной версии: максимум 128 сущностей, включая подготовленные добавления. В Arena Demo отдельно ограничены 16 Enemy и 16 Pickup. Спавн сверх предела отклоняется понятным сообщением в диагностической панели; он не завершает игру аварийно. Для Player допускается ровно один экземпляр в Arena Demo.
-
-Система движения использует double-координаты; положение округляется только при рисовании. Vec2 не допускает NaN и Infinity. Normalization для нулевого вектора возвращает ZERO. Диагональное движение Player нормализуется.
-
-Rect определяется как левый верхний угол, width и height. AABB-пересечение требует положительной площади; касание границ без площади не считается столкновением. CollisionPair нормализует порядок ID, поэтому одна пара выдаётся один раз за tick. CollisionSystem не начисляет очки и не уменьшает health.
-
-После движения bounds остаётся внутри арены. Waypoint Patrol валидируются внутри арены при создании стратегии; Chase и Flee могут остановиться у границы. Полноценное обходное движение вокруг препятствий не входит в версию.
-
-Сложность CollisionSystem — перебор пар O(n²), достаточный для установленного небольшого числа объектов. Оптимизация spatial grid остаётся Further Work. Производительность подтверждается измерениями; выдуманные FPS или проценты покрытия не включаются в отчёт.
-
-## Демонстрационная игра
-
-### Начальная сцена
-
-TitleScene показывает название JSE, выбранную тему и управление. Enter запускает Arena Demo, H открывает Rendering Showcase. Escape из любой демонстрации возвращает TitleScene. Меню реализуется средствами той же графики; отдельный редактор не требуется.
-
-### Arena Demo
-
-Логический viewport 960×540. Игровая арена — Rect(24, 64, 912, 452), то есть правый край 936 и нижний 516. Верхняя область зарезервирована под HUD. Координаты — пиксели логического мира, X направлен вправо, Y вниз.
-
-| Объект или правило | Значение обязательной версии |
-| --- | --- |
-| Player | 24×24, health=3, speed=220 пикселей/сек |
-| Enemy | 24×24, speed=110 пикселей/сек, три начальных объекта |
-| Pickup | 16×16, value=1, восемь начальных объектов |
-| Цель | Собрать восемь предметов |
-| Урон | Контакт с любым Enemy уменьшает health на 1 |
-| Защита после урона | 0.75 секунды активного игрового времени |
-| Победа | score ≥ 8 и Player.health > 0 |
-| Поражение | Player.health = 0 |
-
-Начальные позиции заданы в коде композиции сцены, не в движке: Player(460, 260); Enemy(120, 130) Patrol, Enemy(760, 140) Chase, Enemy(720, 410) Flee; Pickup(80, 90), (260, 90), (450, 90), (650, 90), (850, 90), (100, 450), (430, 450), (820, 450). Все bounds должны помещаться в арену и не пересекаться при старте. Для Patrol начальные waypoint — (120, 130) и (300, 130). Фиксированные позиции обеспечивают воспроизводимость без случайного генератора.
-
-ArenaLayout отвечает за фиксированные SpawnRequest и начальные стратегии; ArenaScene вызывает его при onEnter. После создания Enemy получают свои стратегии. Здоровье Player и очки отображаются в HUD; выбранный Enemy отмечается отдельно. Сбор предмета удаляет его, увеличивает score и отправляет ItemCollected. Повторный сбор того же ID невозможен.
-
-В одном tick урон применяется максимум один раз, независимо от количества Enemy в контакте. Cooldown уменьшается только в RUNNING. При одновременном последнем сборе и смертельном уроне приоритет имеет LOST. GameFinished публикуется один раз при первом переходе в терминальный статус.
-
-В WON/LOST показываются результат и инструкции R/Escape. R создаёт новый World, начальные объекты, score=0, health=3 и новые подписки. Визуальные настройки сохраняются; выбранный Enemy сбрасывается. Для логов ID интерпретируется вместе с номером запуска, поскольку новый World снова начинает ID с единицы.
-
-### Rendering Showcase
-
-Сцена содержит два ряда графических объектов: SpriteGraphic и RectangleGraphic, а также их варианты с OutlineDecorator и HealthBarDecorator с фиксированным демонстрационным HealthView 2/3. F1 меняет режим, F2/F3 меняют обёртки, Escape возвращает меню. У сцены нет ArenaRules, условия победы и столкновений.
-
-Showcase использует те же Renderer, Graphic и декораторы. Её назначение — показать, что графические компоненты пригодны для другой сцены и что ядро не содержит механик Arena Demo. Это вспомогательная сцена, не вторая полноценная игра.
-
-### Управление
-
-| Клавиша | Действие | Допустимое состояние |
-| --- | --- | --- |
-| WASD или стрелки | Движение Player | RUNNING |
-| P | Пауза или продолжение | RUNNING/PAUSED |
-| R | Новый запуск текущей темы | Arena Demo в любом статусе |
-| T | Forest ↔ Space с новым запуском Arena Demo | Arena Demo в любом статусе |
-| F1 | Filled ↔ Wireframe | Все сцены |
-| F2 | Включение/выключение OutlineDecorator | Демонстрационные сцены |
-| F3 | Включение/выключение HealthBarDecorator | Демонстрационные сцены |
-| Tab | Выбрать следующий Enemy | RUNNING/PAUSED |
-| B | Назначить следующую стратегию выбранному Enemy | RUNNING/PAUSED |
-| 1 | Создать дополнительный Enemy | RUNNING |
-| 2 | Создать дополнительный Pickup | RUNNING |
-| L | Отписать/подписать EventLogObserver | Arena Demo в любом статусе |
-| Enter | Начать Arena Demo | TitleScene |
-| H | Открыть Rendering Showcase | TitleScene |
-| Escape | Вернуться к меню | Демонстрационные сцены |
-
-Диагностические spawn-команды выбирают первую свободную точку из фиксированной сетки с шагом 48 пикселей, начиная с (48, 88), проверяя bounds и пересечения с активными и подготовленными объектами. Порядок — слева направо, затем сверху вниз; x=48+48i, y=88+48j для неотрицательных i/j, пока объект помещается в арену. Если свободной точки или вместимости нет, отображается причина отказа. Дополнительный Enemy получает ChaseBehavior; дополнительные Pickup увеличивают доступные предметы, но цель остаётся восемь.
-
-Обработка клавиш использует Swing Key Bindings в фокусированном окне. Для управляющих команд повторные key-pressed от ОС подавляются до release. Нажатия, сделанные между двумя update, сохраняются как pressed до потребления. При потере фокуса held очищается, RUNNING переводится в PAUSED; возвращение фокуса не запускает движение или игру автоматически. Tab обрабатывается как команда выбора Enemy, без передачи фокуса другим компонентам.
-
-## Работа с ошибками
-
-| Ситуация | Требуемая реакция |
-| --- | --- |
-| Некорректная конфигурация, отрицательный размер, NaN или Infinity | Отказ при создании/валидации с указанием поля |
-| Объект не помещается в арену | Spawn отклоняется до постановки в очередь |
-| Достигнут лимит сущностей или нет свободной точки | Пользовательское сообщение; игра продолжается |
-| Отсутствует sprite | Placeholder и сообщение с идентификатором ресурса |
-| Неожиданная ошибка update/observer | Остановка симуляции, сообщение об ошибке и stack trace в консоли |
-| Ошибка paint | Освободить контекст, прекратить дальнейшее рисование сцены и показать штатный Swing error panel |
-| Выбранный Enemy удалён | Выбрать следующий активный или показать отсутствие Enemy; B становится безопасным no-op |
-| Нет Player в WorldView | AI возвращает ZERO; Arena Demo считает это ошибкой своей конфигурации |
-| Повторный restart/scene switch | Переход ставится в очередь; применяется последний запрос в текущем update; переход завершает catch-up текущего pump |
-
-Неожиданные ошибки не превращаются в скрытый «успешный» результат. Диагностические сообщения для отказов spawn отделяются от исключений программирования. Пустые коллекции возвращаются как пустые коллекции, а не null.
-
-## Применение SOLID
-
-| Принцип | Конкретное правило JSE | Что показать в отчёте |
-| --- | --- | --- |
-| SRP | Renderer рисует; AiSystem вычисляет скорость; CollisionSystem ищет пересечения; ArenaRules применяет правила | Раздельные классы и отсутствие игровых правил в рендере |
-| OCP | Новая стратегия/графический компонент/семейство добавляется отдельной реализацией | Пример добавления реализации без правки алгоритма контекста; регистрация в composition root допустима |
-| LSP | Все семейства соблюдают общие контракты Player/Enemy/Pickup; оба рендера выполняют обещанные операции | Общие контрактные тесты Forest и Space; отсутствие UnsupportedOperationException для обязательных операций |
-| ISP | InputSource, Renderer, BehaviorStrategy, GameEventListener и WorldView имеют узкие обязанности | Объяснение, почему AI не зависит от методов UI или спавна |
-| DIP | Контексты получают Renderer, BehaviorStrategy, family factory и listener-интерфейсы | Конструкторы, composition root и использование RecordingRenderer в проверках |
-
-Заявление «используем интерфейсы, значит SOLID выполнен» не является доказательством. Для каждого принципа приводится конкретный фрагмент реализации и объясняется, какие изменения он позволяет изолировать.
-
-## Проверки и критерии приёмки
-
-Автоматические проверки запускаются через `./mvnw clean verify`. Проверки логики не зависят от окна, сети, реального sleep и порядка исполнения других тестов. Управление временем подаётся через pump(nowNanos) или явный dt. Не задаётся искусственный процент покрытия; проверяются значимые границы и поведение.
-
-| Проверка | Что должно быть доказано | Ответственный |
-| --- | --- | --- |
-| Bridge | SpriteGraphic и RectangleGraphic делегируют правильные операции обоим рендерам; смена рендера не меняет Entity | Sabirzhanov Emil |
-| Реальный рендер | Filled и Wireframe дают различимое изображение в BufferedImage; проверяются существенные области, а не все пиксели шрифта | Sabirzhanov Emil |
-| Decorator | База рисуется ровно один раз; оба слоя работают вместе; переключатели не увеличивают вложенность; Renderer передаётся всей цепочке | Sabirzhanov Emil |
-| Ресурсы | Classpath-загрузка, кэш, placeholder для отсутствующего ресурса | Sabirzhanov Emil |
-| Factory Method | Три spawner вызывают общий процесс и создают нужные категории; до commit объект pending, после commit активен | Baktiyarova Aruzhan с World от Roziyeva Yasmina |
-| Валидация spawn | Некорректные bounds отклоняются; лимит включает pending-объекты; ID уникальны в пределах World | Baktiyarova Aruzhan и Roziyeva Yasmina |
-| Abstract Factory | По три типа продуктов у Forest и Space; familyId согласован; базовые игровые контракты одинаковы | Baktiyarova Aruzhan |
-| Две фабрики вместе | Все spawner работают с обеими family factory, шесть сочетаний category×family | Baktiyarova Aruzhan |
-| Strategy | Patrol меняет точку без дрожания; Chase движется к Player; Flee от него; нулевая дистанция безопасна; смена сохраняет ID | Roziyeva Yasmina |
-| Observer | Два наблюдателя получают событие; отписанный не получает; новая подписка при доставке не получает текущего; событие callback отложено до следующего tick | Roziyeva Yasmina |
-| Очистка сцены | После серии из 20 restart нет старых подписок, лишних событий и повторного HUD-обновления | Roziyeva Yasmina |
-| Движение | Скорость зависит от dt, диагональ нормализована, bounds ограничены ареной | Roziyeva Yasmina |
-| Столкновения | Касание без площади не считается overlap; одна пара не дублируется; один Pickup собирается один раз | Roziyeva Yasmina |
-| Правила | Cooldown защищает от многократного урона; смерть имеет приоритет над одновременным последним сбором; GameFinished одноразовый | Roziyeva Yasmina |
-| Цикл | Пять шагов максимум за pump; пауза не меняет мир; большой delta не создаёт неограниченный backlog; pressed не повторяется по шагам | Sabirzhanov Emil с Scene от Roziyeva Yasmina |
-| Независимость сцен | Showcase запускается на том же ядре и рендерах без ArenaRules | Sabirzhanov Emil и Roziyeva Yasmina |
-
-RecordingRenderer используется только как test double для проверки делегирования; он не заявляется как второй рабочий renderer. Оба рабочих режима должны рисовать изображение. Аналогично, fake factory и listener в тестах не заменяют реальные реализации паттернов.
-
-Ручная проверка готового JAR:
-
-1. Запустить на ноутбуке защиты с установленной Java 17, без IDE и сети.
-2. Открыть Arena Demo, двигаться по диагонали, потерять/вернуть фокус и проверить паузу.
-3. Переключить F1, F2 и F3; подтвердить сохранение игровых координат и работы ввода.
-4. Выбрать Enemy и показать все три стратегии без пересоздания объекта.
-5. Создать Enemy/Pickup, проверить диагностические лимиты.
-6. Собрать предмет, показать score и события; отключить лог через L и показать продолжающий работу HUD.
-7. Переключить тему T; подтвердить согласованное новое семейство и полный сброс игры.
-8. Получить WON и LOST, проверить приоритет и R.
-9. Перезапустить несколько раз, проверить отсутствие повторных callback.
-10. Открыть Showcase и вернуться в меню; штатно закрыть окно.
-
-Производительность проверяется на названном в отчёте ноутбуке: десять минут игры с диагностическим лимитом сущностей, без зависания интерфейса, аварии и неограниченного роста очередей. Критерий интерактивности: каждая управляющая команда отражается визуально не позднее 250 мс при таком запуске; измерение выполняется записью экрана с указанием способа замера. В журнале фиксируются конфигурация машины, средние FPS/UPS за выбранный интервал и случаи droppedTime. Отдельный обязательный порог FPS не вводится; 60 UPS остаётся целевой частотой логики.
-
-## План завершения по учебным неделям
-
-| Неделя | Sabirzhanov Emil | Baktiyarova Aruzhan | Roziyeva Yasmina | Общий контрольный результат |
-| --- | --- | --- | --- | --- |
-| 5 | Maven/Wrapper/JAR, окно, input, Engine и фиксированный update, первый renderer и прямоугольный Graphic | GameObject/Player/Enemy/Pickup, SpawnRequest, первая factory и spawner-контракты | Scene/SceneManager/World, движение Player | Из общей ветки запускается окно с движущимся Player, созданным через spawner; интерфейсы зафиксированы |
-| 6 | Bridge с двумя рабочими режимами, sprites и обе обёртки Decorator | Полные Factory Method и Abstract Factory, Forest/Space и наполнение арены | Strategy, EventBus, HUD/log observers, базовые столкновения и ArenaRules | Все шесть паттернов присутствуют в одном работающем сценарии; темы/AI/рендер переключаются |
-| 7 | Showcase, графические проверки, исправления ввода и фокуса | Проверки фабрик, валидация, черновик разделов отчёта | Полные win/lose/pause/restart, тесты событий и логики, очистка сцен | Обязательные функции закончены; новая функциональность больше не добавляется |
-| 8 | Проверка готового JAR, снимки экрана, диаграммы графики | Объединение отчёта, диаграммы фабрик, источники и вклад участников | Регрессия, диаграммы AI/событий/последовательностей, сценарий защиты | Кандидат на сдачу: готовая игра, прошедшие проверки, полный черновик PDF, готовый ZIP |
-| 9 | Проверка состава ZIP, команд и Moodle-дедлайна | Финальная вычитка PDF и соответствия требованиям | Последний сквозной прогон и фиксация результатов | Проверенная версия, PDF и ZIP загружены до дедлайна; есть запас для исправления сдачи |
-| 10 | Индивидуальная защита Bridge/Decorator | Индивидуальная защита двух фабрик | Индивидуальная защита Strategy/Observer | Защита и ответы на вопросы |
-
-Неделя 9 резервируется для упаковки, вычитки, репетиции и исправлений, а не для первого объединения частей. Первый интеграционный запуск обязателен на 5-й неделе; работа всех паттернов — на 6-й. Это контрольные этапы плана, а не гарантия выполнения независимо от фактической работы команды.
-
-В конце каждой недели проводится общий запуск из свежей копии репозитория. Показ отдельных фрагментов на локальных ветках не заменяет общий контрольный результат.
-
-Если к концу 6-й недели интеграция отстаёт, сокращаются оформление меню, детализация sprite, декоративные эффекты и число showcase-примеров. Сохраняются шесть работающих паттернов, две рабочие реализации Renderer, два декоратора, две фабрики семейства, стратегии, наблюдатели и основной игровой сценарий. Нельзя компенсировать отсутствие паттерна дополнительными страницами отчёта.
-
-## Работа в Git и интеграция
-
-Используется одна рабочая ветка main и короткие feature-ветки, например `feature/emil-renderer`, `feature/aruzhan-factories`, `feature/yasmina-events`. Полный Gitflow с develop/release/hotfix не требуется для объёма JSE; раздел Gitflow в курсе рассматривается отдельно и не является явно установленным условием финальной сдачи в предоставленных требованиях.
-
-Правила команды:
-
-- Каждый работает под собственным авторством и коммитит связные изменения с понятным описанием.
-- В main попадает собирающаяся версия с соответствующими проверками. За согласование интерфейсов отвечает Roziyeva Yasmina, но изменения обсуждают владельцы обоих затронутых модулей.
-- Изменения Renderer/Graphic/World/Spawner/EventBus вносятся короткими совместимыми шагами; интерфейс не меняется молча после передачи коллегам.
-- Чужие классы не переписываются без согласования с владельцем. Исправление интеграции документируется в PR или описании коммита.
-- В начале 5-й недели реализуется общий набор зафиксированных контрактов; в дальнейшем несовместимые изменения требуют обновления вызывающих частей в том же объединении.
-- Каждый паттерн сопровождается проверками, UML и коротким пояснением назначения, преимуществ и ограничений.
-- История Git остаётся достоверной; задним числом не создаются фиктивные вклады и результаты проверок.
-
-CI через GitHub Actions допустим как полезное дополнение, но не является отдельной обязательной функцией движка. При наличии CI он запускает те же Maven-проверки. Нельзя делать сборку пригодной только для IDE одного участника.
-
-## UML и доказательства реализации
-
-В `docs/uml` подготовлены проектные PlantUML-источники; в `docs/uml/rendered` находятся их SVG и PNG. Они фиксируют архитектуру версии 1.0. Перед итоговой сдачей источники обновляются по фактическому коду и изображения генерируются повторно для PDF.
-
-| Файл | Содержание | Ответственный |
-| --- | --- | --- |
-| architecture.puml | Логические модули и направления зависимостей | Roziyeva Yasmina |
-| rendering-patterns.puml | Bridge и Decorator с явными ролями | Sabirzhanov Emil |
-| factory-patterns.puml | Factory Method и Abstract Factory с разными структурами | Baktiyarova Aruzhan |
-| behavior-patterns.puml | Strategy и Observer с конкретными наблюдателями | Roziyeva Yasmina |
-| spawn-sequence.puml | Вызов spawner, фабрики семейства, World.commit и событий | Baktiyarova Aruzhan и Roziyeva Yasmina |
-| collection-sequence.puml | Столкновение, сбор Pickup, удаление и уведомления | Roziyeva Yasmina |
-
-Для отчёта нужны отдельные читаемые изображения каждого паттерна, даже если исходник объединяет две структуры. В class diagrams показываются наследование, реализации интерфейсов, композиция и существенные методы. В sequence diagrams показываются порядок вызовов и границы update/commit/dispatch. Диаграммы не должны изображать несуществующие классы или пропускать фактический обходной путь.
-
-Требования курса устанавливают UML в целом, но не конкретное число диаграмм. Шесть структур паттернов, схема устройства и две последовательности — принятое в проекте покрытие для понятной защиты.
-
-Обязательные скриншоты с работающего приложения:
-
-- TitleScene и Arena Demo в обычном режиме.
-- Та же сцена в Wireframe.
-- Контур и полоска здоровья вместе.
-- Forest и Space с видимыми Player, Enemy и Pickup.
-- Диагностика выбранного Enemy и его стратегии.
-- Сбор Pickup с обновлёнными score и журналом событий.
-- WON, LOST и Rendering Showcase.
-
-Каждый снимок имеет подпись о том, какую функцию или паттерн он подтверждает. Макеты, тестовые записи и изображения только UML не заменяют скриншоты приложения.
-
-## Структура итогового отчёта
-
-Итоговый отчёт пишется на английском; рабочее ТЗ — на русском. Это решение команды по языку курса, а не отдельное обязательное условие из предоставленных требований. Новые прямые указания преподавателя имеют приоритет.
-
-1. Title Page: курс, тема, команда, группа и преподаватель по фактическим данным, дата сдачи.
-2. Introduction: проблема, цель, аудитория разработчиков, выбранный объём 2D и цели проекта.
-3. Main Body — Requirements and Architecture: требования, границы, стек, модули, зависимости, модель сцены и цикл.
-4. Main Body — Design Patterns: шесть самостоятельных подразделов. В каждом проблема, роли и реальные классы, UML, существенный код, использование в общей игре, сценарий показа, достоинства и ограничения.
-5. Main Body — Integration: взаимодействие Factory Method с Abstract Factory, визуальные слои с Bridge, AI и Observer в игровом update; sequence diagrams.
-6. Main Body — SOLID: пять примеров с кодом и объяснением.
-7. Main Body — Application Screenshots: изображения реального приложения с подписями.
-8. Main Body — Verification: команды, среда, реальные результаты, ручные сценарии и найденные ограничения. Невыполненная проверка прямо обозначается.
-9. Main Body — Individual Contributions: таблица паттернов и модулей, ссылки на фактические коммиты/PR, подготовленные каждым материалы.
-10. Conclusion: достигнутые цели и ограничения текущей версии.
-11. Further Work: редактор уровней, новые backend, физика, загрузка сцен и прочие будущие возможности без заявления, что они реализованы.
-12. References: лекции, документация, заимствованные идеи и ресурсы с корректными ссылками.
-13. Appendix — Source Code: полный листинг всех файлов `src/main/java`, сгруппированный по пакетам с именем файла перед каждым листингом. Код существенных частей шести паттернов дополнительно приводится в соответствующих подразделах Main Body. Полный проект, тесты и ресурсы входят в ZIP.
-
-Полный листинг production-кода в PDF принят как правило проекта, чтобы выполнить требование включить source code без дополнительного согласования объёма приложения. Длинные листинги находятся в Appendix и не заменяют объяснения паттернов в Main Body.
-
-Количество страниц, шрифт и число слайдов не выдумываются как требования. При отсутствии шаблона используются аккуратные заголовки, нумерация страниц, читаемые диаграммы, подписи и последовательные названия классов.
-
-## Сценарий защиты
-
-Последовательность рассчитана на около 8–10 минут и корректируется под фактически выделенное преподавателем время. Продолжительность не является требованием силлабуса.
-
-1. Sabirzhanov Emil кратко описывает JSE, показывает окно и запущенную Arena Demo.
-2. Baktiyarova Aruzhan объясняет EntitySpawner и создаёт Enemy/Pickup, показывая общий процесс spawn и разные продукты Factory Method.
-3. Baktiyarova Aruzhan переключает Forest/Space и показывает три согласованных продукта Abstract Factory. Отдельно объясняет, почему это второй паттерн.
-4. Sabirzhanov Emil переключает Filled/Wireframe на одной сцене, показывает две ветви Bridge и сохранение игровых объектов.
-5. Sabirzhanov Emil включает контур и health bar по отдельности и вместе, показывает делегирование и совместимость Decorator с Graphic.
-6. Roziyeva Yasmina выбирает Enemy и последовательно показывает Patrol, Chase и Flee без смены его ID.
-7. Roziyeva Yasmina собирает Pickup, показывает HUD и журнал события, отключает EventLogObserver и подтверждает работу оставшегося наблюдателя.
-8. Команда показывает restart и Showcase, кратко связывает решения с SOLID и ограничениями версии.
-
-Каждый готов отвечает про свои два паттерна: какую проблему решают, где интерфейс/абстракция и concrete implementations, почему выбраны, чем отличаются от похожего паттерна, где вызываются в общей игре, как проверены и какие ограничения создают.
-
-Особенно важные вопросы:
-
-- Baktiyarova Aruzhan: Factory Method против простой фабрики; Factory Method против Abstract Factory; где находятся разные категории и разные семейства; зачем обе структуры нужны одновременно.
-- Sabirzhanov Emil: Bridge против Strategy/Adapter; зачем две независимые оси; Decorator против наследования; как выключаются обёртки; почему Graphics2D не хранится между кадрами.
-- Roziyeva Yasmina: Strategy против State; направление зависимости Observer; отписка и жизненный цикл; почему правила не зависят от HUD; порядок collision/commit/dispatch.
-- Все: где код движка и код игры; как добавить новую сцену; что означает dt; какие функции сознательно оставлены на будущее.
-
-К сдаче готовятся JAR, локальная копия исходников, PDF и изображения диаграмм. Резервная запись демонстрации допустима как дополнение, но не заменяет работающий проект без отдельного разрешения преподавателя.
-
-## Состав сдачи и окончательная готовность
-
-В Moodle отправляются `JSE_Report.pdf` и `JSE_Source.zip`. ZIP содержит исходники, pom.xml, Maven Wrapper, ресурсы, README, тесты, документацию и UML-источники. `.git`, локальные пути IDE, кэши и ненужные временные файлы не включаются. Готовый `jse-demo.jar` хранится отдельно для защиты; включение JAR в ZIP не заменяет исходный код.
-
-README объясняет назначение JSE, требуемую Java, сборку и запуск, управление, шесть паттернов и вклад команды. Список ресурсов и лицензий включается в документацию.
-
-Проект принимается командой как готовый только после выполнения всех пунктов:
-
-- [ ] Чистая копия проекта собирается по README, автоматические проверки проходят.
-- [ ] Готовый JAR запускается без IDE на ноутбуке защиты.
-- [ ] Все шесть паттернов имеют реальные реализации и демонстрационные действия.
-- [ ] Каждый участник объясняет и защищает собственные два паттерна.
-- [ ] Основной сценарий игры, пауза, restart, тема, AI, рендер и наблюдатели работают вместе.
-- [ ] После restart не остаются старые подписки и не дублируются события.
-- [ ] Showcase использует общие графические компоненты.
-- [ ] UML соответствует итоговому коду, скриншоты сняты с итоговой версии.
-- [ ] PDF содержит все обязательные разделы, код, UML, скриншоты, SOLID и индивидуальный вклад.
-- [ ] ZIP распакован отдельно и проверен повторной сборкой; все нужные ресурсы присутствуют.
-- [ ] Команда провела репетицию и проверила фактический срок Moodle.
-- [ ] PDF и ZIP загружены до дедлайна, отправка и доступность вложений проверены.
-
-Незаполненные чекбоксы здесь обозначают будущие критерии приёмки, а не неизвестные требования. До выполнения проверок нельзя заявлять, что реализация завершена.
-
-## Нормативные интерфейсы Java
-
-Это контракт версии 1.0, а не исходники готового движка. Каждый указанный тип размещается в отдельном `.java`-файле внутри своего пакета. Сигнатуры ниже приводятся без импортов и тел методов. Все типы и перечисленные методы/конструкторы публичные, если явно не указаны protected или package-private; строки из блоков не копируются как готовые компилируемые файлы. В record канонический конструктор публичный, статическая ZERO — public static final. Публичные операции возвращают данные согласно контракту; `null` не используется вместо пустых коллекций и Optional. Конструкторы отклоняют null через NullPointerException, недопустимые значения через IllegalArgumentException. Изменяемые объекты используются на EDT; тесты логики могут работать без EDT при последовательных вызовах.
-
-### Общие значения и ввод
+The concrete Java signatures are the source of truth for the current milestone:
 
 ```java
-// jse.math — Sabirzhanov Emil
-record Vec2(double x, double y) {
-    static final Vec2 ZERO; // (0, 0)
-    Vec2 add(Vec2 other); Vec2 subtract(Vec2 other);
-    Vec2 scale(double factor); double length(); Vec2 normalized();
+public record EngineConfig(int width, int height, int targetUps,
+                           int maxUpdatesPerPump, double maxFrameDeltaSeconds,
+                           int timerDelayMillis) {}
+public record EngineServices(EngineConfig config, Renderer initialRenderer,
+                             EngineControl control) {}
+public interface EngineControl {
+    void requestScene(Scene scene);
+    void setRenderMode(RenderMode mode);
+    void stop();
 }
-record Rect(double x, double y, double width, double height) {
-    boolean overlaps(Rect other); boolean contains(Rect other);
-}
-record Rgba(int r, int g, int b, int a) {}
-
-// jse.world — Baktiyarova Aruzhan
-// Каждый enum также находится в отдельном файле.
-enum ObjectKind { PLAYER, ENEMY, PICKUP }
-enum ThemeId { FOREST, SPACE }
-
-// jse.input — Sabirzhanov Emil
-// Физические WASD/стрелки отображаются в четыре действия движения.
-enum GameAction {
-    MOVE_UP, MOVE_DOWN, MOVE_LEFT, MOVE_RIGHT, PAUSE, RESTART,
-    SWITCH_THEME, SWITCH_RENDERER, TOGGLE_OUTLINE, TOGGLE_HEALTH,
-    SELECT_ENEMY, SWITCH_BEHAVIOR, SPAWN_ENEMY, SPAWN_PICKUP,
-    TOGGLE_LOG, START_ARENA, OPEN_SHOWCASE, BACK_TO_TITLE
-}
-record InputState(Set<GameAction> held, Set<GameAction> pressed) {
-    boolean isHeld(GameAction action); boolean isPressed(GameAction action);
-}
-interface InputSource { InputState snapshotAndConsumePressed(); void clear(); }
-```
-
-Vec2 допускает только конечные компоненты; normalized(ZERO) = ZERO. Rect требует конечные координаты и положительные width/height. Rgba допускает значения 0–255. InputState делает защитные `Set.copyOf`. SwingInputSource хранит физические клавиши отдельно, поэтому отпускание W при удерживаемой стрелке вверх не снимает MOVE_UP. Новые pressed сохраняются до snapshot, авто-repeat не создаёт новых команд. `clear()` очищает held и pressed.
-
-### Платформа и жизненный цикл
-
-```java
-// jse.core — Sabirzhanov Emil, кроме Scene/SceneManager/EngineServices (Roziyeva Yasmina)
-record EngineConfig(int width, int height, int targetUps, int maxUpdatesPerPump) {}
-interface EngineControl {
-    void requestScene(Scene next); void setRenderMode(RenderMode mode); void stop();
-}
-interface EngineHost {
-    void open(EngineConfig config, LongConsumer pump,
-              Consumer<Renderer> paint, Runnable focusLost, Runnable closeRequested);
-    Renderer currentRenderer(); void setRenderMode(RenderMode mode);
-    void startTimer(); void requestRepaint();
-    void showError(String message, Throwable cause); void close();
-}
-record EngineServices(EngineConfig config, EventBus events,
-                      Renderer initialRenderer, EngineControl control) {}
-interface Scene {
+public interface Scene {
     void onEnter(EngineServices services);
     void update(double dt, InputState input);
     void render(Renderer renderer);
-    void onFocusLost(); void onExit();
-}
-class JseEngine implements EngineControl {
-    JseEngine(EngineConfig config, EngineHost host, InputSource input);
-    void start(Scene initial); void pump(long nowNanos); void render(Renderer renderer);
-    void requestScene(Scene next); void setRenderMode(RenderMode mode); void stop();
-}
-class SceneManager {
-    void activate(Scene initial, EngineServices services);
-    void request(Scene next);
-    boolean applyPending(Supplier<EngineServices> servicesFactory);
-    Scene current(); void close();
+    void onFocusLost();
+    void onExit();
 }
 ```
 
-Production-конфигурация: `new EngineConfig(960,540,60,5)`. EngineConfig допускает положительные значения; тесты используют уменьшенный viewport. `start` вызывается ровно один раз; повторный start — IllegalStateException, stop идемпотентен. Внутри start JseEngine вызывает host.open, связывает callbacks со своими методами, активирует сцену и затем запускает Timer; SwingHost вызывает pump с System.nanoTime, создаёт кадр для render, при потере фокуса очищает InputSource и вызывает current.onFocusLost. READY нужен только при конструировании ArenaScene; после onEnter состояние RUNNING. Возврат фокуса ничего не возобновляет.
+The snippets summarize separate public types; they are not a single compilable source file. Values reject null or invalid input rather than substituting defaults.
 
-SceneManager хранит текущую сцену и один pending-запрос. applyPending закрывает старые Scene и EventBus, создаёт новые EngineServices и активирует последнюю запрошенную сцену; возвращает true только при переходе. JseEngine использует этот результат для отмены оставшихся шагов pump и очистки ввода. Закрытая шина освобождает слушателей и очередь; publish/subscribe/dispatch после close — IllegalStateException. Смена режима Renderer не создаёт новую сцену.
+EngineHost registers pump, paint, focus-loss, close and failure callbacks. `open` prepares the window without invoking those callbacks; `startTimer` shows it and starts updates. `currentRenderer`, `setRenderMode`, `requestRepaint`, `showError` and `close` complete the host boundary.
 
-### Графика и ресурсы
+JseEngine receives EngineConfig, EngineHost and InputSource explicitly. It starts once and confines operations to the starting thread, EDT in the application. Subsequent starts fail. stop is idempotent and closes the host even if scene cleanup fails. Cleanup errors are retained, not silently discarded.
+
+SceneManager keeps one current scene and one pending request. The last request before the transition wins. Transition applies at an update boundary, never while painting. The old scene exits once, the new one enters once. Failure during entry still calls its exit handler. If shutdown occurs during the outgoing scene's exit, replacement entry is cancelled.
+
+After a transition, input is cleared and the accumulator reset; remaining updates from the current batch are cancelled. Scene-specific subscriptions and resources are owned and closed by that scene. EngineServices intentionally contains no EventBus.
+
+## Fixed timing — Implemented
+
+The timer is a pump source, not a variable-delta simulation. Default target updates are 60 per second, so dt is 1/60. The first timestamp initializes the clock without an update. Backward timestamps are rejected.
+
+Elapsed time is clamped to the configured maximum, default 0.25 seconds. Each pump performs at most five updates by default. Excess whole steps are dropped, leaving a remainder below dt; a one-ULP correction handles floating point tick boundaries. EngineStats exposes completed updates, dropped seconds and pending seconds.
+
+A stop request inside update prevents further updates or repaint in that batch. Update, entry or paint failure stops simulation, clears input and exits the active scene once. The desktop host displays an English error panel and keeps its window closable. A paint failure is reported only after endFrame and graphics disposal.
+
+## Bridge rendering and assets — Implemented
 
 ```java
-// jse.render — Sabirzhanov Emil
-interface Renderer {
-    void drawSprite(SpriteId id, Rect bounds);
+public interface Renderer {
+    void drawSprite(SpriteId sprite, Rect bounds);
     void drawRectangle(Rect bounds, Rgba color);
     void drawOutline(Rect bounds, Rgba color);
     void drawText(String text, Vec2 position, Rgba color);
 }
-enum RenderMode { FILLED, WIREFRAME }
-abstract class Graphic {
-    protected Graphic(Renderer renderer);
-    abstract void draw(Rect bounds); void setRenderer(Renderer renderer);
-}
-class SpriteGraphic extends Graphic { SpriteGraphic(Renderer renderer, SpriteId id); }
-class RectangleGraphic extends Graphic { RectangleGraphic(Renderer renderer, Rgba color); }
-abstract class GraphicDecorator extends Graphic { protected GraphicDecorator(Graphic wrapped); }
-class OutlineDecorator extends GraphicDecorator {
-    OutlineDecorator(Graphic wrapped, Rgba color);
-}
-interface HealthView { int currentHealth(); int maxHealth(); }
-class HealthBarDecorator extends GraphicDecorator {
-    HealthBarDecorator(Graphic wrapped, HealthView health);
-}
-
-// jse.render.awt — Sabirzhanov Emil
-interface FrameRenderer extends Renderer {
-    void beginFrame(Graphics2D graphics, int width, int height); void endFrame();
-}
-class FilledRenderer implements FrameRenderer { FilledRenderer(AssetManager assets); }
-class WireframeRenderer implements FrameRenderer { WireframeRenderer(AssetManager assets); }
-
-// jse.assets — Sabirzhanov Emil
-// BufferedImage допустим только на границе assets и AWT-реализаций.
-enum SpriteId {
-    FOREST_PLAYER, FOREST_ENEMY, FOREST_PICKUP,
-    SPACE_PLAYER, SPACE_ENEMY, SPACE_PICKUP
-}
-class AssetManager {
-    AssetManager(); // production: собственный ClassLoader
-    // package-private для контролируемого отсутствующего ресурса в тестах
-    AssetManager(ClassLoader resources);
-    void preload(); BufferedImage get(SpriteId id);
+public abstract class Graphic {
+    protected Renderer renderer;
+    public void setRenderer(Renderer renderer);
+    public abstract void draw(Rect bounds);
 }
 ```
 
-Наследование OutlineDecorator и HealthBarDecorator — от GraphicDecorator, как в UML. GraphicDecorator получает renderer через обёрнутый Graphic; его `setRenderer` меняет собственную ссылку и передаёт renderer внутрь. drawText использует позицию как baseline текста. drawOutline задаёт контур толщиной 2 логических пикселя. HealthBar располагается на 6 пикселей выше bounds, имеет высоту 4 и ширину bounds.width, заполнение зелёное на тёмном фоне по отношению `clamp(currentHealth/maxHealth,0,1)`; maxHealth должен быть >0. Положение полоски не входит в bounds физики.
+Graphic is the Bridge abstraction; RectangleGraphic and SpriteGraphic are refined abstractions. Renderer is the implementor; FilledRenderer and WireframeRenderer are concrete implementors. Adding a graphic type and adding a renderer style are independent changes.
 
-FrameRenderer вне beginFrame/endFrame отклоняет рисование с IllegalStateException; endFrame безопасен повторно. SwingHost хранит оба renderer и выбранный режим; каждый paint связывает только выбранный renderer. Сцена перед рисованием передаёт renderer всем Graphic через setRenderer. AssetManager.preload загружает все шесть sprite до запуска Timer. Повторный get возвращает тот же кэшированный BufferedImage. Placeholder — пурпурный прямоугольник с чёрным крестом нужного размера; предупреждение об отсутствующем ID печатается один раз.
+Filled paints colored rectangles and scaled images. Wireframe outlines rectangles and draws sprite bounds, diagonals and resource labels. Both draw real Java2D output; a recording test renderer is not counted as a second production implementation. Both styles use one graphics backend.
 
-### Объекты, снимки мира и фабрики
+FrameRenderer adds beginFrame(Graphics2D, width, height) and endFrame. Draw operations outside a frame and reentrant beginFrame fail. endFrame is idempotent. GamePanel copies its incoming graphics context and releases the copy after the frame. No graphics context survives a frame. Text position is a baseline; font, stroke, wireframe color and antialiasing come from RenderStyle.
+
+SpriteId is a relative classpath path, not a theme enum. Absolute paths, empty path segments and traversal are rejected. Example future paths are `sprites/forest/player.png` and `sprites/space/player.png`.
+
+AssetManager is composed with a ClassLoader and MissingSpriteStyle. preload reads each ID at most once, closes streams and caches the decoded image or fallback. get performs no resource reads or logging; it returns a cached image or a configured placeholder. Looking up an unprepared ID does not prevent subsequent preload. Missing resources are diagnosed during preload, once per ID. Images returned by the cache are read-only by contract.
+
+## Runtime preview and configuration — Implemented
+
+The preview scene moves a configurable rectangle inside a viewport-derived area. Initial/reset position is centered; motion is normalized before applying speed × dt, then clamped to the area. Opposing directions cancel. Pause freezes movement but leaves commands available. Focus loss pauses without automatic resume. Reset centers and resumes.
+
+Bundled defaults are in `src/main/resources/jse.properties`. `--config FILE` overlays UTF-8 properties. `--help` prints usage without opening a window. Startup rejects unknown keys, invalid typed values, duplicate physical assignments and layouts that cannot fit the object. Help labels in the preview reflect configured bindings.
+
+| Settings | Meaning |
+| --- | --- |
+| `window.*` | Title, content dimensions, background |
+| `engine.*` | Fixed update rate, catch-up budget, maximum frame delta, timer delay |
+| `render.*` | Initial style, font, stroke, wireframe color, antialiasing |
+| `assets.*` | Placeholder style and comma-separated preload paths |
+| `preview.*` | Object dimensions, speed, padding, header/line spacing and colors |
+| `input.*` | Comma-separated physical key aliases per logical action |
+
+Default controls are WASD/arrows, P pause, R reset, F1 style and Escape close. PreviewScene is an independent example; it does not stand in for the planned factories, game entities or AI.
+
+## Decorator — Planned; Emil
+
+GraphicDecorator extends Graphic and wraps a Graphic. draw first delegates, then adds its own layer. setRenderer updates itself and propagates to the wrapped graphic. OutlineDecorator adds a configurable border. HealthBarDecorator reads HealthView and draws the clamped current/max ratio; maxHealth must be positive.
+
+Decorator styling belongs in an immutable settings value: proposed defaults are a 2-pixel outline, bar offset 6, height 4, green fill and dark background. Bar position is visual only and does not modify collision bounds.
+
+GameObject retains immutable baseGraphic and replaceable graphic. Toggle handlers rebuild from baseGraphic in a fixed order, Outline then HealthBar, rather than repeatedly wrapping the existing decorated graphic. Health applies only to Player. Repeated F2/F3 toggles must not grow the chain. Renderer replacement must reach every wrapped component.
+
+The showcase must exercise SpriteGraphic and RectangleGraphic under both renderers, each alone and with combined decorators, and display a partial health value such as 2/3.
+
+## Entity model — Planned; Aruzhan
+
+ObjectKind is PLAYER, ENEMY or PICKUP. ThemeId is FOREST or SPACE. SpawnRequest contains position and positive size. GameObject stores category, family, position, size, velocity, assigned ID, active/removal state, immutable baseGraphic and current graphic. Its bounds derive from position and size. No entity draws directly through Graphics2D.
+
+Player is an abstract category implementing HealthView; Enemy is an abstract category holding a BehaviorStrategy; Pickup is an abstract category holding value. ForestPlayer/Enemy/Pickup and SpacePlayer/Enemy/Pickup are the six concrete products. Each fixes its family identity and takes a SpawnRequest, Graphic and validated category settings.
+
+Before registration an object has ID 0 and active=false. World alone assigns a positive ID once and controls active/removal state. Assigning an ID twice or attaching an already registered object is invalid. Health cannot fall below zero; positive damage only. Enemy starts with IdleBehavior until scene setup assigns its intended strategy.
+
+Game values must be injected through category settings; do not hardcode speed, health or pickup values in six product constructors. Target defaults: player size 24×24, speed 220, health 3; enemy size 24×24, speed 110; pickup size 16×16, value 1.
+
+## Factory Method and Abstract Factory — Planned; Aruzhan
+
+GameObjectFamilyFactory defines familyId and createPlayer/createEnemy/createPickup. ForestFactory and SpaceFactory produce three related products with corresponding SpriteGraphic resource IDs. They receive Renderer and validated entity settings. All category spawners in one ArenaScene share the same selected family factory.
+
+EntitySpawner<T extends GameObject> is the creator. Its final spawn operation validates the request, invokes protected abstract createObject, checks returned category/family and queues it in World. PlayerSpawner, EnemySpawner and PickupSpawner override createObject with the corresponding family-factory operation.
+
+Factory Method selects a product category through creator subclasses. Abstract Factory selects a coherent family across categories. A switch inside one helper is not the intended Factory Method structure. Factories create products; World owns IDs and registration; scenes own spawning policy and category limits.
+
+Acceptance requires all three creators and both concrete families, validation of mismatched products, a coherent six-product matrix and identical game rules after a theme switch.
+
+## World and snapshots — Planned; Yasmina
+
+World is constructed with a positive runId, arena, family identity, injected capacity and scene-owned EventBus. enqueueAdd validates family, bounds, size, capacity and unregistered identity, assigns the next ID and reserves space. IDs increase monotonically per World and are never reused.
+
+Adds are queued. Until commit an object is absent from view/findActive/forEachActive and remains inactive. spawnView includes queued additions to reserve occupied space. enqueueRemove immediately marks an object unavailable to active lookup and iteration, while structural removal is deferred.
+
+commitChanges(tick) applies removals first, then additions in ID order. Committed changes publish one EntityRemoved or EntitySpawned. Removing a queued addition cancels it without either lifecycle event, but consumes its assigned ID. Repeated removal or an unknown ID is a no-op. Structural requests must not mutate the collection currently being iterated.
+
+WorldView contains an immutable List<EntityView>, Optional<Vec2> playerPosition and arena. EntityView contains ID, category, family, position and bounds, with no mutable GameObject or Graphic reference. Both active view and spawn view exclude pending removals. A saved snapshot remains unchanged after the world mutates.
+
+Default World capacity is 128 including queued additions. Arena policy separately allows one Player, at most 16 Enemies and at most 16 Pickups. Capacity and category limits are injected settings, not runtime constants.
+
+## Strategy and physics — Planned; Yasmina
+
+BehaviorStrategy defines `Vec2 desiredVelocity(Enemy enemy, WorldView world, double dt)`. It returns intent; it does not mutate World or position. dt must be positive and finite. AiSystem applies strategy results to velocities; MotionSystem alone integrates positions and clamps them to arena bounds.
+
+Idle returns ZERO. Patrol holds two waypoints and its current target. Near a target it returns direction × min(speed, distance/dt) so it does not overshoot, then changes target for the following update. Chase follows the player and returns ZERO without a target or at zero distance. Flee moves away within a configurable radius, default 180; outside it returns ZERO. Exact player/enemy overlap chooses a stable rightward direction.
+
+Behavior replacement changes neither entity ID nor position nor family. Publish BehaviorChanged only when an actual replacement occurs. Deterministic tests cover each behavior, no target, zero distance, waypoint arrival and clamping.
+
+CollisionSystem reads WorldView and returns distinct positive ID pairs with min/max ordering, sorted by firstId then secondId. Positive area overlap is required. Physics owns detection; ArenaRules owns consequences.
+
+## Observer and events — Planned; Yasmina
+
+GameEvent exposes runId and tick. EventBus supports typed subscribe, publish, dispatchPending and close. subscribe accepts `Class<E>` and `GameEventListener<? super E>` and returns idempotent AutoCloseable Subscription. Routing uses the exact event class. Duplicate subscriptions for the same class and listener identity fail.
+
+At dispatch start, snapshot the queued events and listener lists for all types in that batch. Events published inside callbacks and subscriptions created inside callbacks take effect only in a later dispatch. Before each callback, check that the subscription is still open. Recursive dispatch is prohibited. Default queued capacity is 1024; overflow fails visibly. Close clears queued events/subscriptions and rejects further use.
+
+| Immutable event | Fields in addition to runId/tick |
+| --- | --- |
+| EntitySpawned | entityId, category, familyId |
+| EntityRemoved | entityId, removal reason |
+| ItemCollected | playerId, pickupId, newScore |
+| HealthChanged | playerId, oldHealth, newHealth |
+| GameFinished | WON/LOST result, finalScore |
+| BehaviorChanged | enemyId, behaviorName |
+
+runId and entity IDs are positive; tick is nonnegative. RemovalReason includes COLLECTED, SCENE_CLEANUP and DIAGNOSTIC.
+
+HudObserver subscribes separately to ItemCollected, HealthChanged and GameFinished. It initializes score 0, health from Player and empty result. EventLogObserver subscribes to all six exact classes and stores the latest 50 chronological lines by default. The observers implement GameEventListener<GameEvent> but do not depend on implicit base-class delivery.
+
+Both retain and close their subscriptions. Disabling the log closes its observer; reenabling creates an empty observer and does not replay missed events. Rules never read HUD state. Pause/selected AI may be displayed directly from read-only scene state.
+
+## Arena example — Planned
+
+ArenaScene owns a fresh EventBus, World, observers and rules for each run. Shared preferences retain theme, renderer, decoration toggles and log enabled state; they are explicitly passed, not global. Run IDs come from a composition-root LongSupplier and start at 1.
+
+For the reference 960×540 viewport the arena is (24, 64, 912, 452). This is the game's layout profile, separate from the current preview header. Store the profile and object layout in game resources/typed settings; a resized viewport must use a compatible validated profile or derived coordinates.
+
+| Initial object | Top-left position | Behavior |
+| --- | --- | --- |
+| Player | (460, 260) | Input |
+| Enemy | (120, 130) | Patrol between (120, 130) and (300, 130) |
+| Enemy | (760, 140) | Chase |
+| Enemy | (720, 410) | Flee, radius 180 |
+| Pickup ×8 | (80,90), (260,90), (450,90), (650,90), (850,90), (100,450), (430,450), (820,450) | None |
+
+The layout queues 12 objects, commits tick 0 and dispatches before first paint. It is owned by Aruzhan. Diagnostic spawning finds the first free grid cell, row-major, starting (48,88) with spacing 48 in the reference profile. Search respects bounds and active plus queued objects. If no free cell or category slot remains, show a clear English status and skip spawning.
+
+An active update performs this order:
+
+1. Resolve commands and early scene transition requests.
+2. Set Player velocity from normalized input.
+3. Build the immutable AI snapshot and update enemy velocities.
+4. Integrate/clamp motion, then snapshot and find overlaps.
+5. Apply pickup interactions, then enemy contact damage.
+6. Commit changes and evaluate outcome.
+7. Dispatch queued events once.
+
+Each pickup contributes 1 toward a target score of 8 and can be collected only once, even if duplicate pairs reach the rules. Contact damage is 1 with an active-time cooldown of 0.75 seconds; multiple simultaneous enemies do not bypass it. Cooldown decreases before processing contacts. Paused time does not affect motion, cooldown or score.
+
+Outcome is evaluated after commit: health zero takes priority over collecting the last pickup in the same update. Publish GameFinished once per run. WON/LOST freezes simulation but preserves reset, menu, theme and visual controls. Rules derive health/score from their own state and entities, never from observers. Missing the sole Player during outcome evaluation is an invariant failure.
+
+Ticks increment for each scene update, including pause; timing-sensitive rules receive dt only during active play. Event dispatch continues when commands produce events during pause.
+
+## Scenes and controls — Planned
+
+TitleScene offers Enter for Arena and H for Showcase. Escape returns from Arena/Showcase to Title. Current preview uses Escape to close; game scenes will interpret BACK_TO_TITLE separately from QUIT.
+
+| Action | Default game key | Behavior |
+| --- | --- | --- |
+| Movement | WASD / arrows | Normalized Player movement |
+| Pause / reset | P / R | Toggle pause; new run of current theme |
+| Theme | T | New run with alternate family |
+| Renderer | F1 | Change style without resetting model |
+| Outline / health | F2 / F3 | Rebuild decorator chain from base graphics |
+| Enemy selection | Tab | Cycle active enemies in ID order |
+| Behavior | B | Cycle Patrol → Chase → Flee for selected enemy |
+| Diagnostic spawn | N / M | Spawn Enemy / Pickup at first free location |
+| Event log | L | Close or create log observer |
+| Menu / showcase | Escape / H | Return to Title / open Showcase from Title |
+
+Changing theme starts a new World, health and score, preserving renderer/decorator/log preferences. Reset does the same within the current theme. Log history and selected enemy reset per run. Command transition precedence is Escape → T → R → Enter/H; after selecting one, skip remaining commands that update. API callers still use the core's last-request-wins rule.
+
+Paused scenes keep painting; renderer/decorator/log toggles and behavior selection remain available. Losing focus clears input and pauses; returning focus does not resume. On exit, close observers and EventBus, discard World and references, and clear input through core transition handling. Repeat reset/theme/menu cycles must leave no duplicate events or subscriptions.
+
+Showcase reuses core and graphics without World or ArenaRules. It displays basic and decorated rectangles/sprites, Filled/Wireframe switching and a partial Player health bar. It is Emil's next example milestone.
+
+## Error handling and configuration boundaries
+
+Invalid configuration fails before window startup with exit status 2. Missing/unsupported images produce a configured fallback and preload warning. Unexpected scene failures stop simulation and show the host error panel. Capacity/invariant failures are not silently swallowed. Lack of a free diagnostic spawn position is an expected condition, not a runtime crash.
+
+Configuration is loaded once. Engine settings configure timing and content size; RenderStyle configures visuals; future entity/arena settings configure game rules. Runtime code must not embed Forest/Space decisions or game score constants. Asset cache images are immutable to consumers, and mutable runtime/game services remain thread-confined.
+
+## SOLID decisions
+
+- Single responsibility: core schedules; host handles the desktop; renderers paint; World stores; systems move/detect; rules decide consequences; observers display.
+- Open/closed: a new Graphic, renderer, family or strategy uses its corresponding interface. Composition may select the new implementation explicitly.
+- Liskov substitution: every renderer obeys frame rules; products preserve category/family invariants; strategies produce finite velocities.
+- Interface segregation: InputSource, HealthView and WorldView expose only the data their clients need.
+- Dependency inversion: core uses host/input/render contracts; scenes receive services and compose game components; rules publish events without naming HUD/log implementations.
+
+## Acceptance criteria
+
+| Area | Required evidence |
+| --- | --- |
+| Build | Fresh checkout on Java 17, clean verify, executable resource-containing JAR |
+| Runtime | Bounded catch-up, single-use pressed actions, thread confinement, transition and shutdown cleanup |
+| Input | Aliases, autorepeat, quick taps, focus clear and binding removal |
+| Bridge | Two actual image outputs; renderer replacement preserves scene position |
+| Assets | No reads/logging in get; one preload per ID; fallback and later preload behavior |
+| Decorator | Standalone and combined layers, propagation, repeated toggle without chain growth |
+| Factories | Three creator subclasses × two families; mismatch rejection and queued registration |
+| World | Stable IDs, queued modifications, cancelled add, immutable views and capacity |
+| Strategy | Three behaviors, runtime swap, no target, arrival and boundary handling |
+| Observer | Exact typed routing, independent unsubscribe, deferred callbacks, duplicate prevention and close |
+| Rules | Single collection, cooldown, loss priority, one outcome event, pause behavior |
+| Lifecycle | At least 20 reset/theme/menu cycles without observer leakage |
+| Example | Playable Arena, menu, outcomes and independent Showcase |
+| Documentation | English docs and UI; implemented/planned distinction; UML and images match the stated version |
+
+Current foundation verification is recorded in [Verification](Verification.md). Planned acceptance checks are not marked passed before their modules exist.
+
+## Release artifacts and walkthrough
+
+A release includes source, wrapper/build configuration, resources with attribution, tests, README, specification, architecture/pattern/sequence diagrams, screenshots, executable JAR and a concise technical report. A source archive excludes .git, IDE settings, caches and generated temporary files; extracting it must reproduce the documented build.
+
+The technical report covers introduction/problem, scope, architecture, six pattern roles and implementation excerpts, interactions, SOLID, tests/results, contributor responsibilities, limitations/future work and references. Each implemented pattern must be explained using its real classes, UML and an observable example action. Source materials and external requirements are kept separately from public product descriptions.
+
+The target walkthrough opens the packaged application, starts Arena, moves/pauses, changes theme, swaps renderer, combines decorators, changes selected enemy behavior, disables/reenables the log, reaches an outcome, restarts and opens Showcase. Explain the object and event flow alongside the visible actions. Maintain local source, diagrams and release files for reproducibility.
+
+## Shared game API — Planned
+
+These signatures define the first integration contract. Add each public type in its own file. Settings are supplied by the game composition root; their defaults come from a game resource profile. Do not modify the current runtime configuration to embed game rules.
 
 ```java
-// jse.factory — Baktiyarova Aruzhan
-record SpawnRequest(Vec2 position, Vec2 size) {}
-interface GameObjectFamilyFactory {
+// jse.factory
+public record SpawnRequest(Vec2 position, Vec2 size) {}
+public record PlayerSettings(Vec2 size, double speed, int maxHealth) {}
+public record EnemySettings(Vec2 size, double speed) {}
+public record PickupSettings(Vec2 size, int value) {}
+public record EntitySettings(PlayerSettings player, EnemySettings enemy,
+                             PickupSettings pickup) {}
+public record FamilySprites(SpriteId player, SpriteId enemy, SpriteId pickup) {}
+public interface GameObjectFamilyFactory {
     ThemeId familyId();
     Player createPlayer(SpawnRequest request);
     Enemy createEnemy(SpawnRequest request);
     Pickup createPickup(SpawnRequest request);
 }
-abstract class EntitySpawner<T extends GameObject> {
+public abstract class EntitySpawner<T extends GameObject> {
     protected EntitySpawner(GameObjectFamilyFactory factory, ObjectKind expectedKind);
-    final T spawn(World world, SpawnRequest request);
+    public final T spawn(World world, SpawnRequest request);
     protected abstract T createObject(SpawnRequest request);
 }
-class PlayerSpawner extends EntitySpawner<Player> { PlayerSpawner(GameObjectFamilyFactory factory); }
-class EnemySpawner extends EntitySpawner<Enemy> { EnemySpawner(GameObjectFamilyFactory factory); }
-class PickupSpawner extends EntitySpawner<Pickup> { PickupSpawner(GameObjectFamilyFactory factory); }
-class ForestFactory implements GameObjectFamilyFactory { ForestFactory(Renderer renderer); }
-class SpaceFactory implements GameObjectFamilyFactory { SpaceFactory(Renderer renderer); }
+```
 
-// jse.world — Baktiyarova Aruzhan; World/WorldView/EntityView — Roziyeva Yasmina
-abstract class GameObject {
+PlayerSpawner, EnemySpawner and PickupSpawner each accept GameObjectFamilyFactory. ForestFactory and SpaceFactory each accept `(Renderer renderer, EntitySettings settings, FamilySprites sprites)`. They validate requested sizes against category settings. Product constructors accept `(SpawnRequest request, Graphic graphic, CategorySettings settings)` with their corresponding category settings type. Identity assignment is exclusively World's responsibility.
+
+```java
+// jse.world
+public abstract class GameObject {
     protected GameObject(ObjectKind category, ThemeId familyId,
                          SpawnRequest request, Graphic baseGraphic);
-    long id(); ObjectKind category(); ThemeId familyId();
-    Vec2 position(); Vec2 size(); Vec2 velocity(); Rect bounds();
-    boolean active(); boolean pendingRemoval();
-    Graphic baseGraphic(); Graphic graphic();
-    void setPosition(Vec2 position); void setVelocity(Vec2 velocity);
-    void setGraphic(Graphic graphic);
-    // Следующие три операции вызывает только World.
-    void assignId(long id); void setActive(boolean active); void markPendingRemoval();
+    public long id();
+    public ObjectKind category();
+    public ThemeId familyId();
+    public Vec2 position();
+    public Vec2 size();
+    public Vec2 velocity();
+    public Rect bounds();
+    public boolean active();
+    public boolean pendingRemoval();
+    public Graphic baseGraphic();
+    public Graphic graphic();
+    public void setPosition(Vec2 position);
+    public void setVelocity(Vec2 velocity);
+    public void setGraphic(Graphic graphic);
 }
-abstract class Player extends GameObject implements HealthView {
-    protected Player(ThemeId familyId, SpawnRequest request, Graphic graphic);
-    double speed(); int currentHealth(); int maxHealth(); void takeDamage(int amount);
+public abstract class Player extends GameObject implements HealthView {
+    protected Player(ThemeId familyId, SpawnRequest request,
+                     Graphic graphic, PlayerSettings settings);
+    public double speed();
+    public int currentHealth();
+    public int maxHealth();
+    public void takeDamage(int amount);
 }
-abstract class Enemy extends GameObject {
-    protected Enemy(ThemeId familyId, SpawnRequest request, Graphic graphic);
-    double speed(); BehaviorStrategy behavior(); void setBehavior(BehaviorStrategy behavior);
+public abstract class Enemy extends GameObject {
+    protected Enemy(ThemeId familyId, SpawnRequest request,
+                    Graphic graphic, EnemySettings settings);
+    public double speed();
+    public BehaviorStrategy behavior();
+    public void setBehavior(BehaviorStrategy behavior);
 }
-abstract class Pickup extends GameObject {
-    protected Pickup(ThemeId familyId, SpawnRequest request, Graphic graphic); int value();
+public abstract class Pickup extends GameObject {
+    protected Pickup(ThemeId familyId, SpawnRequest request,
+                     Graphic graphic, PickupSettings settings);
+    public int value();
 }
-record EntityView(long id, ObjectKind category, ThemeId familyId,
-                  Vec2 position, Rect bounds) {}
-record WorldView(List<EntityView> entities, Optional<Vec2> playerPosition, Rect arena) {}
-class World {
-    World(long runId, Rect arena, ThemeId familyId, EventBus events);
-    long runId(); Rect arena(); ThemeId familyId(); int sizeIncludingPending();
-    void enqueueAdd(GameObject object);
-    void enqueueRemove(long entityId, RemovalReason reason);
-    void commitChanges(long tick); WorldView view(); WorldView spawnView();
-    void forEachActive(Consumer<GameObject> action);
-    Optional<GameObject> findActive(long id);
+public record EntityView(long id, ObjectKind category, ThemeId familyId,
+                         Vec2 position, Rect bounds) {}
+public record WorldView(List<EntityView> entities,
+                        Optional<Vec2> playerPosition, Rect arena) {}
+public final class World {
+    public World(long runId, Rect arena, ThemeId familyId,
+                 int capacity, EventBus events);
+    public long runId();
+    public Rect arena();
+    public ThemeId familyId();
+    public int sizeIncludingPending();
+    public void enqueueAdd(GameObject object);
+    public void enqueueRemove(long entityId, RemovalReason reason);
+    public void commitChanges(long tick);
+    public WorldView view();
+    public WorldView spawnView();
+    public void forEachActive(Consumer<GameObject> action);
+    public Optional<GameObject> findActive(long id);
 }
 ```
 
-Baktiyarova Aruzhan создаёт также по три конкретных продукта в `jse.theme.forest` и `jse.theme.space`. Их публичные конструкторы `(SpawnRequest request, Graphic graphic)` передают константу семейства в базовую категорию; клиентами конструкторов являются только соответствующие фабрики. Player имеет speed=220, current/maxHealth=3; Enemy speed=110 и новый IdleBehavior; Pickup value=1. takeDamage принимает положительный amount и ограничивает здоровье снизу нулём. Id до enqueueAdd равен 0; active=false. GameObject сохраняет один неизменяемый baseGraphic и заменяемый graphic. Vec2 size и SpawnRequest обязаны иметь обе компоненты >0.
-
-World.enqueueAdd повторно проверяет family, bounds и лимит 128, назначает ID ровно один раз и резервирует место. Чужое семейство, ненулевой ID или повторная постановка — IllegalArgumentException, превышение вместимости — IllegalStateException. Factory проверяет ожидаемые размеры и категорию, World — общие инварианты. До commit объект не active и не виден в view/findActive/forEachActive. После commit active=true и публикуется ровно одно EntitySpawned. World.spawnView возвращает такой же неизменяемый снимок активных и подготовленных объектов для поиска свободного места; pending removal исключены. World.view содержит только активные. WorldView делает защитный List.copyOf; сохранённый снимок не меняется после изменения мира. При запросе удаления findActive и view сразу исключают объект.
-
-commitChanges сначала применяет удаления, затем добавления в порядке назначенных ID. Удаление подготовленного объекта отменяет его добавление без EntitySpawned/EntityRemoved; назначенный ID остаётся использованным. Повторное удаление или неизвестный ID — no-op. События фактического удаления имеют переданный reason и tick. Дополнительные лимиты по категориям и единственный Player проверяются ArenaScene до spawn. Структурные операции не изменяют коллекцию, используемую текущим forEachActive.
-
-### AI, столкновения и игровые правила
+GameObject's `assignId`, `setActive` and `markPendingRemoval` are package-private methods in jse.world, not public mutation entry points. World alone calls them. SpawnRequest/category sizes must have positive components. World uses bounds endpoints to validate complete containment; Rect.contains takes a Vec2 in the current runtime.
 
 ```java
-// jse.ai — Roziyeva Yasmina
-interface BehaviorStrategy { Vec2 desiredVelocity(Enemy enemy, WorldView world, double dt); }
-class IdleBehavior implements BehaviorStrategy {}
-class PatrolBehavior implements BehaviorStrategy { PatrolBehavior(Vec2 first, Vec2 second); }
-class ChaseBehavior implements BehaviorStrategy {}
-class FleeBehavior implements BehaviorStrategy { FleeBehavior(double radius); }
-class AiSystem { void update(World world, WorldView view, double dt); }
-
-// jse.physics — Roziyeva Yasmina
-class MotionSystem { void update(World world, double dt); }
-record CollisionPair(long firstId, long secondId) {}
-class CollisionSystem { List<CollisionPair> findOverlaps(WorldView world); }
-
-// jse.demo — Roziyeva Yasmina, кроме DemoPreferences (Sabirzhanov Emil) и ArenaLayout (Baktiyarova Aruzhan)
-enum ArenaStatus { READY, RUNNING, PAUSED, WON, LOST }
-class ArenaRules {
-    ArenaRules(EventBus events);
-    int score(); ArenaStatus status();
-    void begin(); void togglePause(); void pauseOnFocusLoss();
-    void applyCollisions(World world, List<CollisionPair> pairs, double dt, long tick);
-    void evaluateOutcome(World world, long tick);
+// jse.ai
+public interface BehaviorStrategy {
+    Vec2 desiredVelocity(Enemy enemy, WorldView world, double dt);
 }
-class DemoPreferences {
-    ThemeId theme(); void setTheme(ThemeId theme);
-    RenderMode renderMode(); void setRenderMode(RenderMode mode);
-    boolean outlineEnabled(); void setOutlineEnabled(boolean enabled);
-    boolean healthEnabled(); void setHealthEnabled(boolean enabled);
-    boolean logEnabled(); void setLogEnabled(boolean enabled);
+public final class AiSystem {
+    public void update(World world, WorldView view, double dt);
 }
-class ArenaLayout { void populate(World world, GameObjectFamilyFactory factory); }
-class SpawnLocator { Optional<SpawnRequest> firstFree(World world, ObjectKind category); }
-```
-
-Каждая стратегия получает dt>0. Patrol хранит собственный индекс waypoint; на последнем шаге к цели возвращает `direction * min(speed, distance/dt)` и переключает цель для следующего вызова. MotionSystem применяет velocity×dt и ограничивает top-left координату интервалами `[arena.x, arena.x+width-size.x]` и аналогично по Y. CollisionPair требует разные положительные ID и хранит min/max; результат отсортирован по firstId, затем secondId.
-
-applyCollisions уменьшает cooldown на dt до обработки; затем обрабатывает все Player–Pickup, затем Player–Enemy. Взаимодействия других категорий не применяют правила. Повторные пары не дают повторный сбор/урон. evaluateOutcome вызывается после commit, сначала проверяет здоровье, затем цель; только здесь публикуется GameFinished. Правила не читают HudObserver. В не-RUNNING applyCollisions ничего не меняет. Отсутствие единственного Player при оценке исхода — IllegalStateException.
-
-DemoPreferences — один явно передаваемый объект для всех сцен, начальные значения FOREST/FILLED/outline=false/health=false/log=true. Это обычная конфигурация, не Singleton. ArenaScene и TitleScene получают `DemoPreferences` в конструкторе; ShowcaseScene также получает `DemoPreferences`. Новый ArenaScene имеет номер runId из общего счётчика DemoApplication, начиная с 1. Для счётчика передаётся LongSupplier; запрос restart/theme создаёт новую сцену с новым номером. Factory создаётся в onEnter с services.initialRenderer, выбранным family; лог начинается пустым, включённость сохраняется. ArenaLayout ставит 12 объектов в очередь; ArenaScene делает commitChanges(0) и dispatchPending до первого paint. Последующие update увеличивают локальный tick с 1, включая update на паузе; cooldown использует только активный dt.
-
-### События и наблюдатели
-
-```java
-// jse.event — Roziyeva Yasmina
-interface GameEvent { long runId(); long tick(); }
+// jse.physics
+public record CollisionPair(long firstId, long secondId) {}
+public final class MotionSystem {
+    public void update(World world, double dt);
+}
+public final class CollisionSystem {
+    public List<CollisionPair> findOverlaps(WorldView world);
+}
+// jse.event
+public interface GameEvent { long runId(); long tick(); }
 @FunctionalInterface
-interface GameEventListener<E extends GameEvent> { void onEvent(E event); }
-interface Subscription extends AutoCloseable { void close(); }
-class EventBus implements AutoCloseable {
-    <E extends GameEvent> Subscription subscribe(Class<E> type, GameEventListener<? super E> listener);
-    void publish(GameEvent event); void dispatchPending(); void close();
-}
-enum RemovalReason { COLLECTED, SCENE_CLEANUP, DIAGNOSTIC }
-enum GameResult { WON, LOST }
-record EntitySpawned(long runId, long tick, long entityId,
-                     ObjectKind category, ThemeId familyId) implements GameEvent {}
-record EntityRemoved(long runId, long tick, long entityId, RemovalReason reason) implements GameEvent {}
-record ItemCollected(long runId, long tick, long playerId, long pickupId, int newScore) implements GameEvent {}
-record HealthChanged(long runId, long tick, long playerId, int oldHealth, int newHealth) implements GameEvent {}
-record GameFinished(long runId, long tick, GameResult result, int finalScore) implements GameEvent {}
-record BehaviorChanged(long runId, long tick, long enemyId, String behaviorName) implements GameEvent {}
-
-// jse.demo — Roziyeva Yasmina
-class HudObserver implements GameEventListener<GameEvent>, AutoCloseable {
-    HudObserver(EventBus events, Player player);
-    int score(); int health(); Optional<GameResult> result();
-    void onEvent(GameEvent event); void close();
-}
-class EventLogObserver implements GameEventListener<GameEvent>, AutoCloseable {
-    EventLogObserver(EventBus events);
-    List<String> lines(); void onEvent(GameEvent event); void close();
+public interface GameEventListener<E extends GameEvent> { void onEvent(E event); }
+public interface Subscription extends AutoCloseable { void close(); }
+public final class EventBus implements AutoCloseable {
+    public EventBus(int queueCapacity);
+    public <E extends GameEvent> Subscription subscribe(
+            Class<E> type, GameEventListener<? super E> listener);
+    public void publish(GameEvent event);
+    public void dispatchPending();
+    public void close();
 }
 ```
 
-Все события имеют runId>0, tick≥0; объектные ID>0. Доставка идёт по точному классу события, без неявного уведомления подписок на базовый GameEvent. EventLogObserver подписывается отдельно на шесть классов, HudObserver — на ItemCollected/HealthChanged/GameFinished; оба хранят Subscription и закрывают их при onExit. HUD инициализируется score=0, health=Player.currentHealth, result=Optional.empty. Пауза и выбранный AI отображаются напрямую из read-only состояния сцены; события HUD отражают очки, здоровье и исход игры.
+PatrolBehavior accepts two Vec2 waypoints; FleeBehavior accepts a positive finite radius. IdleBehavior and ChaseBehavior need no configuration. Each enemy gets its own stateful PatrolBehavior, never a shared patrol cursor.
 
-dispatchPending фиксирует очередь событий и списки слушателей всех доставляемых типов в начале вызова. Подписки, созданные внутри callback, начнут получать события только при следующем dispatch. Для каждого callback проверяется, не закрыта ли подписка. Рекурсивный dispatchPending запрещён с IllegalStateException; publish внутри callback разрешён и откладывается. За один update вызывается ровно один dispatchPending. Очередь ограничена 1024 событиями, накопленная переполненность — IllegalStateException и штатное сообщение Engine об ошибке. EventLogObserver хранит последние 50 строк хронологически; L не воспроизводит события, пропущенные во время отключения.
+HudObserver accepts `(EventBus events, Player player)`, exposes score/health/optional result and closes subscriptions. EventLogObserver accepts `(EventBus events, int capacity)`, exposes an immutable chronological list of lines and closes subscriptions. Both implement GameEventListener<GameEvent> and AutoCloseable.
 
-### Точки сборки приложения
+ArenaRules receives EventBus and immutable ArenaSettings containing target score, damage cooldown and contact damage. Arena composition also receives category limits, World/event/log capacities, layout and preferences. `applyCollisions(World, List<CollisionPair>, double dt, long tick)` and `evaluateOutcome(World, long tick)` follow the ordering defined above. Rules expose read-only score/status for UI; begin/pause/focus-loss operations update their own state.
 
-DemoApplication.main создаёт AssetManager и preload, оба рендера, SwingInputSource, SwingHost, EngineConfig, DemoPreferences, счётчик runId и JseEngine. Создание Swing-компонентов и запуск выполняются через SwingUtilities.invokeLater. Сцены получают preferences и runIds через конструкторы, без глобального доступа к Engine. Конкретные сигнатуры конструкторов сцен:
-
-```java
-TitleScene(DemoPreferences preferences, LongSupplier runIds);
-ArenaScene(DemoPreferences preferences, long runId, LongSupplier runIds);
-ShowcaseScene(DemoPreferences preferences, LongSupplier runIds);
-SwingHost(AssetManager assets, SwingInputSource input);
-SwingInputSource();
-GamePanel();
-```
-
-SwingHost создаёт и настраивает GamePanel; paintComponent передаёт выделенный Graphics2D выбранному FrameRenderer и callback paint. Main запускает TitleScene. Любая новая сцена создаёт свой World только при необходимости: Title и Showcase не обязаны иметь World. Смена F1 обновляет preferences и вызывает EngineControl.setRenderMode; F2/F3 перестраивают графику из baseGraphic. B публикует BehaviorChanged при действительной смене. При одновременных командах перехода приоритет Escape → T → R → Enter/H; остальные команды в этом update не исполняются. Для нескольких API-requestScene в одном update действует правило последнего запроса.
-
-## Учебные материалы для участников
-
-| Участник | Основные материалы | Связанные темы |
-| --- | --- | --- |
-| Sabirzhanov Emil | Lecture 4 — Bridge; Lecture 5 — Decorator | Lecture 3 для отличий Adapter; Lecture 10 для SOLID |
-| Baktiyarova Aruzhan | Lecture 2 — Factory Method и Abstract Factory | Lecture 1 для отличий Builder; Lecture 10 для SOLID |
-| Roziyeva Yasmina | Lecture 7 — Strategy; Lecture 8 — Observer | Lecture 6 для тестирования; Lecture 9 для простого дизайна и concurrency; Lecture 10 для SOLID |
-
-Обязательные материалы курса: `Software Design Patterns Syllabus.pdf` и `Final Project Defense Requirements.pdf`. Для теории паттернов используются лекции из той же папки. Любые дополнительные источники в итоговом отчёте отделяются от требований курса.
+Before merging the first game model, Aruzhan and Yasmina validate these signatures together and update consumers in the same change if a necessary adjustment emerges. Runtime interfaces are already implemented and should remain compatible.

@@ -1,32 +1,36 @@
-# Работа в команде
+# Contributing to JSE
 
-Перед реализацией прочитайте [ТЗ](docs/JSE-Technical-Specification.md), раздел «Нормативные интерфейсы Java» и свою задачу в [плане](docs/superpowers/plans/2026-10-04-jse-implementation.md).
+Project documentation, UI text, comments and diagnostics are English. Discuss changes in the language comfortable for the team, then record the resulting decisions in English.
 
-| Участник | Основные пакеты | Паттерны |
-| --- | --- | --- |
-| Sabirzhanov Emil | core (цикл и платформа), math, input, platform/awt, render, assets; Showcase | Bridge, Decorator |
-| Baktiyarova Aruzhan | world (модель объектов), factory, theme; ArenaLayout | Factory Method, Abstract Factory |
-| Roziyeva Yasmina | world (World и снимки), ai, event, physics; Scene/SceneManager, Arena, наблюдатели | Strategy, Observer |
+## Ownership
 
-Точные владельцы файлов указаны в плане. Совместная помощь отражается в реальной истории Git и таблице вклада; авторство не передаётся формально.
+Sabirzhanov Emil maintains the runtime, desktop platform, input, rendering and assets. Baktiyarova Aruzhan maintains game objects, product families and creation flows. Roziyeva Yasmina maintains World, AI, events, physics, game rules and game scenes. Core Scene and SceneManager belong to the runtime; ArenaScene, TitleScene and their state belong to the game.
 
-## Рабочий процесс
+Use [the integration guide](docs/Integration-Guide.md) before changing a shared signature. A module's owner reviews changes to its contracts. Ownership describes responsibility, not a restriction on assistance; commits record their actual contributors.
 
-1. Обновите main: `git switch main`, затем `git pull --ff-only` после подключения origin.
-2. Создайте короткую ветку: `git switch -c feature/emil-graphics-contracts` (имя замените под свою задачу).
-3. Реализуйте небольшой завершённый результат. Для игровой логики добавьте поведенческие тесты из плана.
-4. Выполните `./mvnw clean verify`. Результаты запишите в PR; отсутствие тестов не означает проверенную игру.
-5. Обновите UML и ТЗ, если изменили контракт. Не меняйте интерфейс без обновления всех потребителей.
-6. Создайте коммит под своим настоящим Git-профилем и PR в main. Коллега проверяет результат, а GitHub Actions проверяет сборку после публикации.
+## Development
 
-E2, A1 и Y1 объединяются в совместимый набор по правилам плана. Не вливайте часть набора, которая не компилируется.
+```sh
+./mvnw clean verify
+java -jar target/jse-demo.jar
+```
 
-## Стиль
+Use a focused branch such as `feature/forest-family`, `feature/event-bus` or `feature/render-decorators`. Keep commits coherent and describe the behavior they introduce. Open a pull request with the problem, resulting behavior, validation and any remaining integration dependency. The default branch is `main`.
 
-Java 17, UTF-8, отступы 4 пробела; имена классов — PascalCase, методов — camelCase. Один публичный тип в файле. Существующие package-info.java документируют назначение пакета и остаются при добавлении классов.
+## Design rules
 
-Production-зависимости не добавляются без изменения ТЗ. Тесты используют JUnit 5.10.2. Изменения времени проверяются через явный dt/pump, а не sleep.
+- Pass dependencies explicitly through constructors. Avoid global mutable state, engine lookups and service registries.
+- Keep engine code independent of the Arena example. Game defaults belong in typed game settings or resource files.
+- Keep mutable runtime and game state on the starting thread. Swing operations run on EDT.
+- Retain no Graphics2D reference after endFrame. Load resources before rendering.
+- Validate invariants where values enter a module. Prefer immutable records and defensive snapshots at boundaries.
+- Comments explain a non-obvious reason or invariant. Names and small methods explain ordinary operations.
+- Do not add a pattern solely to increase the pattern count. Each planned pattern has a specific role in the example.
 
-## Локальные материалы
+## Verification and documentation
 
-Учебные PDF в корне исключены из Git. Они нужны локально для сверки требований; публичный репозиторий содержит ТЗ, план и диаграммы. Итоговый отчёт в docs/report может храниться в Git. target, release, IDE-настройки и временные файлы игнорируются.
+Write behavior tests for changed timing, lifecycle, factories, world mutations, event delivery and game rules. Use explicit timestamps instead of sleeps. Swing component tests run on EDT using buffered images; they do not require a desktop. Native window checks are reported separately.
+
+Before requesting review, run the relevant checks and update docs or diagrams when a public contract changes. Do not claim cross-platform behavior, a complete Arena game or a working pattern without verifying it.
+
+Keep generated build output and local source materials out of Git. Store original artwork and its attribution with the game resources when those are added. Maven Wrapper notices remain intact.

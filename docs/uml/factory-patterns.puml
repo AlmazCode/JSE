@@ -1,5 +1,5 @@
 @startuml
-title Baktiyarova Aruzhan - Factory Method and Abstract Factory
+title Planned: Baktiyarova Aruzhan - Factory Method and Abstract Factory
 skinparam classAttributeIconSize 0
 abstract class "EntitySpawner<T extends GameObject>" as Spawner <<Creator>> {
   # familyFactory: GameObjectFamilyFactory

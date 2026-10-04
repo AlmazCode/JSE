@@ -1,5 +1,5 @@
 @startuml
-title Roziyeva Yasmina - Strategy and Observer
+title Planned: Roziyeva Yasmina - Strategy and Observer
 skinparam classAttributeIconSize 0
 abstract class Enemy <<Strategy Context>> {
   - behavior: BehaviorStrategy

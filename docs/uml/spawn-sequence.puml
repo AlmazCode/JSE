@@ -1,5 +1,5 @@
 @startuml
-title JSE - Enemy spawn and observer notification
+title Planned: JSE - Enemy spawn and observer notification
 actor Developer
 participant ArenaScene as Scene
 participant EnemySpawner as Spawner
@@ -7,7 +7,7 @@ participant "selected GameObjectFamilyFactory" as Family
 participant World
 participant EventBus as Bus
 participant EventLogObserver as Log
-Developer -> Scene : press 1
+Developer -> Scene : press N
 Scene -> Scene : select free position / check demo limits
 Scene -> Spawner : spawn(world, request)
 Spawner -> Spawner : validate request and world capacity

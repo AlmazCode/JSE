@@ -1,80 +1,67 @@
-# JSE Java Simple Engine
+# Java Simple Engine
 
-JSE — учебный проект для Final Exam по Software Design Patterns: собственный 2D-движок на Java 17, Arena Demo и Rendering Showcase.
+JSE is a compact Java 17 runtime for 2D desktop applications. It provides fixed updates, scene lifecycle, keyboard actions and interchangeable Java2D rendering. A configurable preview runs independently of the planned Arena game.
 
-**Текущее состояние:** готов каркас репозитория, Maven Wrapper, исполняемая точка входа, документация и GitHub Actions. Движок, игра и шесть паттернов реализуются командой по ТЗ. Сейчас запуск JAR печатает сообщение о готовности каркаса и завершает работу; игрового окна пока нет.
+![Runtime preview](docs/screenshots/runtime-filled.png)
 
-| Участник | Паттерны | Основная часть |
-| --- | --- | --- |
-| Sabirzhanov Emil | Bridge + Decorator | Рендеринг, окно, ввод и игровой цикл |
-| Baktiyarova Aruzhan | Factory Method + Abstract Factory | Объекты, фабрики и наполнение арены |
-| Roziyeva Yasmina | Strategy + Observer | Мир, AI, события, сцены и правила игры |
+## Build and run
 
-## Сборка и запуск
+Install **JDK 17 or newer**. The Maven Wrapper selects Maven 3.9.9; the first build downloads build dependencies. Production code uses the JDK only.
 
-Нужен JDK 17. Maven устанавливать отдельно не требуется: Wrapper использует Maven 3.9.9. Для первой сборки нужен доступ к Maven Central. Для запуска собранного JAR сеть не нужна.
-
-Linux/macOS:
-
-```bash
-./mvnw --version
+```sh
 ./mvnw clean verify
 java -jar target/jse-demo.jar
 ```
 
-Windows PowerShell:
+On Windows, replace `./mvnw` with `mvnw.cmd`. The packaged application runs without Maven, an IDE or a network connection. A desktop display is required for the window. Tests and help work without a display:
 
-```powershell
-.\mvnw.cmd --version
-.\mvnw.cmd clean verify
-java -jar target/jse-demo.jar
+```sh
+java -Djava.awt.headless=true -jar target/jse-demo.jar --help
 ```
 
-Ожидаемый результат сборки — BUILD SUCCESS и target/jse-demo.jar. Сейчас поведенческих тестов движка нет; команда добавляет их вместе с реализацией. Surefire запускает JUnit 5.10.2 после появления тестов в src/test/java.
+The preview supports movement with WASD or arrows, **P** to pause/resume, **R** to reset, **F1** to switch Filled/Wireframe rendering and **Escape** to close. Losing window focus clears input and pauses movement; press P after returning. Reset centers the object and resumes movement.
 
-Для IDE откройте pom.xml как Maven-проект и выберите JDK 17. Изображения будут загружаться из src/main/resources/sprites; папки подготовлены, PNG ещё не созданы.
+## Configuration
 
-## Документация
+Defaults live in [jse.properties](src/main/resources/jse.properties). Supply a UTF-8 file containing only the values to override:
 
-- [Готовое ТЗ версии 1.0](docs/JSE-Technical-Specification.md): требования курса, архитектура, точные контракты и приёмка.
-- [План реализации](docs/superpowers/plans/2026-10-04-jse-implementation.md): задачи, файлы, зависимости и проверки.
-- [Работа в команде](CONTRIBUTING.md): владельцы пакетов, ветки, PR и правила интеграции.
-- [Публикация на GitHub](docs/GitHub-Setup.md): подключение origin, push и настройка команды.
-- [Общая архитектура](docs/uml/rendered/architecture.svg); PlantUML-источники и изображения находятся в docs/uml.
-
-## Структура
-
-```text
-.github/                 Проверка сборки и шаблоны PR/Issues
-.mvn/wrapper/            Maven 3.9.9 Wrapper
-src/main/java/jse/
-  core/                  Цикл и управление сценами
-  world/                 Модель объектов и мир
-  math/                  Векторы, прямоугольники и цвета
-  input/                 Действия и снимки ввода
-  platform/awt/          Окно Swing и клавиатура
-  render/, render/awt/   Bridge, Decorator и Java2D
-  assets/                Загрузка и кэш ресурсов
-  factory/, theme/      Создание объектов и семейства
-  ai/, event/, physics/ AI, события и физика
-  demo/                  Входная точка и демонстрационные сцены
-src/main/resources/     Ресурсы игры
-src/test/                Проверки реализации
-docs/                   ТЗ, план, UML, будущий отчёт и снимки
+```properties
+window.width=1024
+window.height=640
+preview.speed=300
+render.mode=WIREFRAME
+input.move_up=I,UP
 ```
 
-Пакеты пока содержат package-info.java с назначением; единственный исполняемый класс — временный DemoApplication. Он будет заменён composition root в задаче I1. Указанная структура определяет места реализации, а не наличие готовых систем.
+```sh
+java -jar target/jse-demo.jar --config preview.properties
+```
 
-## Следующие задачи
+Unknown keys, conflicting bindings, invalid colors and layouts that cannot fit the object are rejected before startup. Resource paths are relative to the classpath; configured sprites are preloaded before the update timer starts.
 
-Основа E1 подготовлена. Emil начинает E2, Aruzhan — A1, Yasmina — Y1; эти задачи объединяются совместимым набором. Первый запуск с движущимся Player — на неделе5, все шесть паттернов — на неделе6, обязательные функции — до конца недели7. Неделя8 отведена под отчёт и проверенный кандидат; до конца недели9 отправляются PDF и ZIP; защита — неделя10.
+## Project status
 
-## Планируемое управление
+The runtime foundation is implemented: window, fixed updates, lifecycle, input, geometry, resource cache, Bridge graphics and two working renderers. The preview is the current executable example.
 
-После реализации Arena: WASD/стрелки — движение; P — пауза; R — restart; T — Forest/Space; F1 — Filled/Wireframe; F2/F3 — декораторы; Tab/B — выбор Enemy и стратегия; 1/2 — диагностический spawn; L — журнал; Escape — меню. В меню Enter открывает Arena, H — Showcase. Подробные условия действий заданы в ТЗ. В текущем каркасе эти команды ещё не работают.
+The Arena game, themed factories, AI, events and graphical decorators are specified for subsequent milestones. Empty game package declarations reserve namespaces; they do not represent implemented game modules. See [development status](docs/Development-Status.md) for completed work and the next handoff.
 
-## Материалы курса и ресурсы
+## Team
 
-Учебные PDF остаются локально в корне и исключены из Git. ТЗ отделяет требования преподавателя от решений команды. Точная дата и время Moodle-дедлайна сверяются с самим заданием.
+| Contributor | Responsibility | Design patterns |
+| --- | --- | --- |
+| Sabirzhanov Emil | Runtime, desktop host, input, rendering, assets, rendering showcase | Bridge; Decorator |
+| Baktiyarova Aruzhan | Game object model, spawners, Forest/Space families, arena layout | Factory Method; Abstract Factory |
+| Roziyeva Yasmina | World, AI, collisions, events, rules, game scenes and observers | Strategy; Observer |
 
-Собственных игровых изображений пока нет. По ТЗ используются шесть собственных PNG; источник и лицензия любого дополнительно заимствованного ресурса записываются в отчёт. Сгенерированные Maven Wrapper-скрипты сохраняют свои Apache License notices.
+Bridge is already implemented. The other five patterns are planned; their intended structures and acceptance checks are documented individually.
+
+## Documentation
+
+- [Technical specification](docs/JSE-Technical-Specification.md): scope, contracts, game behavior and acceptance criteria.
+- [Implementation plan](docs/Implementation-Plan.md): completed foundation steps and team milestones.
+- [Integration guide](docs/Integration-Guide.md): concrete boundaries for parallel development.
+- [Runtime design](docs/design/Runtime-Foundation.md): lifecycle and timing decisions.
+- [Verification](docs/Verification.md): commands, results and practical limits.
+- [Contributing](CONTRIBUTING.md) and [GitHub setup](docs/GitHub-Setup.md).
+
+[Runtime architecture](docs/uml/rendered/runtime-architecture.svg) describes existing code. The other UML diagrams are explicitly marked as planned game integration.

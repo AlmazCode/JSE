@@ -1,0 +1,23 @@
+package jse.input;
+
+public enum GameAction {
+    MOVE_UP,
+    MOVE_DOWN,
+    MOVE_LEFT,
+    MOVE_RIGHT,
+    PAUSE,
+    RESTART,
+    SWITCH_THEME,
+    SWITCH_RENDERER,
+    TOGGLE_OUTLINE,
+    TOGGLE_HEALTH_BAR,
+    SELECT_ENEMY,
+    SWITCH_BEHAVIOR,
+    SPAWN_ENEMY,
+    SPAWN_PICKUP,
+    TOGGLE_LOG,
+    START_ARENA,
+    SHOW_SHOWCASE,
+    BACK_TO_TITLE,
+    QUIT
+}

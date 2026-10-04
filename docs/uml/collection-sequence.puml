@@ -1,5 +1,5 @@
 @startuml
-title JSE - Pickup collection and HUD notification
+title Planned: JSE - Pickup collection and HUD notification
 participant ArenaScene as Scene
 participant CollisionSystem as Collision
 participant ArenaRules as Rules
@@ -31,7 +31,9 @@ opt game finished
   Bus -> Hud : onEvent(GameFinished)
   Bus -> Log : onEvent(GameFinished)
 end
-Scene -> Scene : request repaint
+note over Scene
+Core requests repaint after updates.
+end note
 note over Rules,Hud
 ArenaRules owns the true score.
 HudObserver displays event data.

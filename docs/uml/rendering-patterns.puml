@@ -1,5 +1,5 @@
 @startuml
-title Sabirzhanov Emil - Bridge and Decorator
+title Sabirzhanov Emil - implemented Bridge and planned Decorator
 skinparam classAttributeIconSize 0
 abstract class Graphic <<Bridge Abstraction / Decorator Component>> {
   # renderer: Renderer
@@ -24,6 +24,7 @@ interface FrameRenderer {
   + beginFrame(graphics: Graphics2D, width: int, height: int)
   + endFrame()
 }
+abstract class AbstractFrameRenderer
 class FilledRenderer <<Concrete Implementor>>
 class WireframeRenderer <<Concrete Implementor>>
 abstract class GraphicDecorator <<Base Decorator>> {
@@ -41,14 +42,16 @@ Graphic <|-- SpriteGraphic
 Graphic <|-- RectangleGraphic
 Graphic o--> Renderer : delegates drawing
 Renderer <|-- FrameRenderer
-FrameRenderer <|.. FilledRenderer
-FrameRenderer <|.. WireframeRenderer
+FrameRenderer <|.. AbstractFrameRenderer
+AbstractFrameRenderer <|-- FilledRenderer
+AbstractFrameRenderer <|-- WireframeRenderer
 Graphic <|-- GraphicDecorator
 GraphicDecorator *--> Graphic : wrapped
 GraphicDecorator <|-- OutlineDecorator
 GraphicDecorator <|-- HealthBarDecorator
 HealthBarDecorator --> HealthView : read only
 note bottom of GraphicDecorator
+Planned next milestone.
 draw delegates to wrapped, then adds its layer.
 setRenderer propagates into wrapped.
 Toggles rebuild from baseGraphic.

@@ -1,0 +1,34 @@
+@startuml
+title JSE 0.1.0 - implemented runtime
+skinparam componentStyle rectangle
+component "demo\nLaunchSettings, PreviewScene, DemoApplication" as demo
+component "core\nJseEngine, SceneManager, EngineHost" as core
+component "input\nInputSource, InputState, GameAction" as input
+component "platform/awt\nSwingHost, GamePanel, SwingInputSource" as platform
+component "render\nGraphic, Renderer, RenderMode" as render
+component "render/awt\nFrameRenderer, FilledRenderer, WireframeRenderer" as awtrender
+component "assets\nAssetManager, SpriteId" as assets
+component "math\nVec2, Rect, Rgba" as math
+artifact "jse.properties" as settings
+demo ..> settings : typed configuration
+demo ..> core : compose and start
+demo ..> platform : desktop composition
+demo ..> render : RectangleGraphic
+demo ..> awtrender : renderer composition
+demo ..> assets : preload before startup
+core ..> input : snapshot per fixed step
+core ..> render : scene painting contract
+platform ..|> core : EngineHost
+platform ..|> input : InputSource
+platform ..> awtrender : begin/end frame
+awtrender ..|> render : Renderer
+awtrender ..> assets : cache-only sprite lookup
+render ..> math
+assets ..> math
+platform ..> math
+demo ..> math
+note bottom of core
+No World, AI or EventBus dependency.
+Scene transitions and shutdown run on the starting thread.
+end note
+@enduml

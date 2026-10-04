@@ -1,0 +1,43 @@
+@startuml
+title JSE 0.1.0 - fixed updates and frame lifetime
+participant SwingHost as Host
+participant JseEngine as Engine
+participant FixedStepClock as Clock
+participant InputSource as Input
+participant SceneManager as Manager
+participant Scene
+participant GamePanel as Panel
+participant FrameRenderer as Renderer
+Host -> Engine : pump(now)
+Engine -> Clock : advance(now)
+Clock --> Engine : bounded steps, fixed dt
+loop each fixed step until transition or stop
+  Engine -> Input : snapshotAndConsumePressed()
+  Input --> Engine : immutable InputState
+  Engine -> Scene : update(dt, input)
+end
+opt queued transition
+  Engine -> Input : clear()
+  Engine -> Clock : resetAccumulator()
+  Engine -> Manager : applyPending(services, activationAllowed)
+  Manager -> Scene : onExit()
+  note over Manager
+  Replacement enters only while Engine is running.
+  end note
+end
+Engine -> Host : requestRepaint()
+Host -> Panel : paintComponent(graphics)
+Panel -> Panel : copy Graphics2D
+Panel -> Renderer : beginFrame(copy, width, height)
+Panel -> Engine : render(renderer)
+Engine -> Scene : render(renderer)
+Scene -> Renderer : draw operations
+Panel -> Renderer : endFrame()
+Panel -> Panel : dispose copy
+opt painting failed
+  Panel -> Engine : failed(exception)
+  Engine -> Manager : close()
+  Engine -> Input : clear()
+  Engine -> Host : showError(message, cause)
+end
+@enduml
