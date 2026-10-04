@@ -1,0 +1,60 @@
+@startuml
+title Sabirzhanov Emil - Bridge and Decorator
+skinparam classAttributeIconSize 0
+abstract class Graphic <<Bridge Abstraction / Decorator Component>> {
+  # renderer: Renderer
+  + draw(bounds: Rect)
+  + setRenderer(renderer: Renderer)
+}
+class SpriteGraphic <<Refined Abstraction / Concrete Component>> {
+  - spriteId: SpriteId
+  + draw(bounds: Rect)
+}
+class RectangleGraphic <<Refined Abstraction / Concrete Component>> {
+  - color: Rgba
+  + draw(bounds: Rect)
+}
+interface Renderer <<Bridge Implementor>> {
+  + drawSprite(id: SpriteId, bounds: Rect)
+  + drawRectangle(bounds: Rect, color: Rgba)
+  + drawOutline(bounds: Rect, color: Rgba)
+  + drawText(text: String, position: Vec2, color: Rgba)
+}
+interface FrameRenderer {
+  + beginFrame(graphics: Graphics2D, width: int, height: int)
+  + endFrame()
+}
+class FilledRenderer <<Concrete Implementor>>
+class WireframeRenderer <<Concrete Implementor>>
+abstract class GraphicDecorator <<Base Decorator>> {
+  # wrapped: Graphic
+  + draw(bounds: Rect)
+  + setRenderer(renderer: Renderer)
+}
+class OutlineDecorator <<Concrete Decorator>>
+class HealthBarDecorator <<Concrete Decorator>>
+interface HealthView {
+  + currentHealth(): int
+  + maxHealth(): int
+}
+Graphic <|-- SpriteGraphic
+Graphic <|-- RectangleGraphic
+Graphic o--> Renderer : delegates drawing
+Renderer <|-- FrameRenderer
+FrameRenderer <|.. FilledRenderer
+FrameRenderer <|.. WireframeRenderer
+Graphic <|-- GraphicDecorator
+GraphicDecorator *--> Graphic : wrapped
+GraphicDecorator <|-- OutlineDecorator
+GraphicDecorator <|-- HealthBarDecorator
+HealthBarDecorator --> HealthView : read only
+note bottom of GraphicDecorator
+draw delegates to wrapped, then adds its layer.
+setRenderer propagates into wrapped.
+Toggles rebuild from baseGraphic.
+end note
+note bottom of FrameRenderer
+Both implementations draw real frames through Java2D.
+Two visual styles, one graphics backend.
+end note
+@enduml

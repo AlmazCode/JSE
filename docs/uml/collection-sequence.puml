@@ -1,0 +1,40 @@
+@startuml
+title JSE - Pickup collection and HUD notification
+participant ArenaScene as Scene
+participant CollisionSystem as Collision
+participant ArenaRules as Rules
+participant World
+participant EventBus as Bus
+participant HudObserver as Hud
+participant EventLogObserver as Log
+Scene -> Collision : findOverlaps(world.view())
+Collision --> Scene : player-pickup pair
+Scene -> Rules : applyCollisions(world, pairs, dt, tick)
+Rules -> Rules : confirm pickup not pending removal
+Rules -> Rules : increase score once
+Rules -> World : enqueueRemove(pickupId, COLLECTED)
+World -> World : mark pending removal immediately
+Rules -> Bus : publish(ItemCollected(newScore))
+Scene -> World : commitChanges(tick)
+World -> World : remove pickup
+World -> Bus : publish(EntityRemoved)
+Scene -> Rules : evaluateOutcome(world, tick)\n(death before victory)
+opt first terminal transition
+  Rules -> Bus : publish(GameFinished)
+end
+Scene -> Bus : dispatchPending()
+Bus -> Hud : onEvent(ItemCollected)
+Hud -> Hud : update displayed score
+Bus -> Log : onEvent(ItemCollected)
+Bus -> Log : onEvent(EntityRemoved)
+opt game finished
+  Bus -> Hud : onEvent(GameFinished)
+  Bus -> Log : onEvent(GameFinished)
+end
+Scene -> Scene : request repaint
+note over Rules,Hud
+ArenaRules owns the true score.
+HudObserver displays event data.
+Rules do not call the HUD directly.
+end note
+@enduml

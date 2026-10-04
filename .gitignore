@@ -1,0 +1,30 @@
+# Maven build output and packaged releases
+/target/
+/release/
+*.class
+*.jar
+*.zip
+!/.mvn/wrapper/maven-wrapper.jar
+
+# IDE and OS files
+.idea/
+*.iml
+.vscode/
+.classpath
+.project
+.settings/
+.DS_Store
+Thumbs.db
+
+# Local configuration and scratch work
+.env
+.env.*
+!.env.example
+*.log
+*.tmp
+/.superpowers/
+/.worktrees/
+/worktrees/
+
+# Course handouts stay local; generated report PDFs under docs/ are tracked
+/*.pdf

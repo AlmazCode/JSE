@@ -1,0 +1,57 @@
+@startuml
+title Roziyeva Yasmina - Strategy and Observer
+skinparam classAttributeIconSize 0
+abstract class Enemy <<Strategy Context>> {
+  - behavior: BehaviorStrategy
+  + setBehavior(behavior: BehaviorStrategy)
+}
+interface BehaviorStrategy <<Strategy>> {
+  + desiredVelocity(enemy: Enemy, world: WorldView, dt: double): Vec2
+}
+class PatrolBehavior <<Concrete Strategy>>
+class ChaseBehavior <<Concrete Strategy>>
+class FleeBehavior <<Concrete Strategy>>
+class IdleBehavior
+class AiSystem {
+  + update(world: World, view: WorldView, dt: double)
+}
+class ArenaRules <<Event Publisher>> {
+  + applyCollisions(world, pairs, dt, tick)
+}
+class World <<Event Publisher>> {
+  + commitChanges(tick: long)
+}
+interface GameEvent
+class EventBus <<Subject>> {
+  + subscribe(type, listener): Subscription
+  + publish(event: GameEvent)
+  + dispatchPending()
+}
+interface "GameEventListener<E extends GameEvent>" as Listener <<Observer>> {
+  + onEvent(event: E)
+}
+interface Subscription {
+  + close()
+}
+class HudObserver <<Concrete Observer>>
+class EventLogObserver <<Concrete Observer>>
+Enemy o--> BehaviorStrategy
+AiSystem ..> Enemy : delegates velocity to behavior
+BehaviorStrategy <|.. PatrolBehavior
+BehaviorStrategy <|.. ChaseBehavior
+BehaviorStrategy <|.. FleeBehavior
+BehaviorStrategy <|.. IdleBehavior
+ArenaRules --> EventBus : publish rule events
+World --> EventBus : publish committed lifecycle events
+EventBus --> GameEvent : queued immutable values
+EventBus o--> Listener : active subscriptions
+EventBus ..> Subscription : returns lifecycle handle
+Subscription ..> EventBus : remove listener
+Listener <|.. HudObserver
+Listener <|.. EventLogObserver
+note bottom of EventBus
+Events are dispatched after commit.
+Events emitted by a listener wait until the next update.
+Scene exit closes subscriptions.
+end note
+@enduml

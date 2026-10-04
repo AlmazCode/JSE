@@ -1,0 +1,41 @@
+@startuml
+title JSE architecture version 1.0
+skinparam componentStyle rectangle
+component "demo\nTitleScene, ArenaScene, ShowcaseScene" as demo
+component "core\nJseEngine, SceneManager, Scene, EngineHost" as core
+component "platform/awt\nSwingHost, GamePanel" as platform
+component "input\nInputSource, InputState" as input
+component "world\nWorld, WorldView, GameObject" as world
+component "factory\nEntitySpawner, family factories" as factory
+component "ai\nBehaviorStrategy, AiSystem" as ai
+component "physics\nMotionSystem, CollisionSystem" as physics
+component "event\nEventBus, listener contracts" as events
+component "render\nGraphic, Renderer, decorators" as render
+component "render/awt\nFilledRenderer, WireframeRenderer" as awtrender
+component "assets\nAssetManager" as assets
+demo ..> core
+demo ..> world
+demo ..> factory
+demo ..> ai
+demo ..> physics
+demo ..> events
+demo ..> render
+core ..> input
+core ..> events
+platform ..> core : pump / paint callbacks
+platform ..> input
+platform ..> awtrender : prepare frame
+awtrender ..> render
+awtrender ..> assets
+factory ..> world
+factory ..> render : object appearance
+world ..> render : Graphic contract
+world ..> ai : Enemy strategy contract
+world ..> events : committed lifecycle events
+ai ..> world : WorldView, Enemy
+physics ..> world
+note bottom of core
+Arena rules and theme choice live in demo.
+The diagram describes planned code, not completed implementation.
+end note
+@enduml

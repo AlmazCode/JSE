@@ -1,0 +1,70 @@
+@startuml
+title Baktiyarova Aruzhan - Factory Method and Abstract Factory
+skinparam classAttributeIconSize 0
+abstract class "EntitySpawner<T extends GameObject>" as Spawner <<Creator>> {
+  # familyFactory: GameObjectFamilyFactory
+  + spawn(world: World, request: SpawnRequest): T
+  # {abstract} createObject(request: SpawnRequest): T
+}
+class PlayerSpawner <<Concrete Creator>>
+class EnemySpawner <<Concrete Creator>>
+class PickupSpawner <<Concrete Creator>>
+interface GameObjectFamilyFactory <<Abstract Factory>> {
+  + createPlayer(request: SpawnRequest): Player
+  + createEnemy(request: SpawnRequest): Enemy
+  + createPickup(request: SpawnRequest): Pickup
+  + familyId(): ThemeId
+}
+class ForestFactory <<Concrete Factory>>
+class SpaceFactory <<Concrete Factory>>
+abstract class GameObject {
+  + id(): long
+  + familyId(): ThemeId
+}
+abstract class Player <<Abstract Product>>
+abstract class Enemy <<Abstract Product>>
+abstract class Pickup <<Abstract Product>>
+class ForestPlayer <<Concrete Product>>
+class ForestEnemy <<Concrete Product>>
+class ForestPickup <<Concrete Product>>
+class SpacePlayer <<Concrete Product>>
+class SpaceEnemy <<Concrete Product>>
+class SpacePickup <<Concrete Product>>
+class World {
+  + enqueueAdd(object: GameObject)
+  + commitChanges(tick: long)
+}
+Spawner <|-- PlayerSpawner
+Spawner <|-- EnemySpawner
+Spawner <|-- PickupSpawner
+Spawner --> GameObjectFamilyFactory
+Spawner ..> World : queue validated product
+PlayerSpawner ..> Player : createObject
+EnemySpawner ..> Enemy : createObject
+PickupSpawner ..> Pickup : createObject
+GameObjectFamilyFactory <|.. ForestFactory
+GameObjectFamilyFactory <|.. SpaceFactory
+GameObject <|-- Player
+GameObject <|-- Enemy
+GameObject <|-- Pickup
+Player <|-- ForestPlayer
+Player <|-- SpacePlayer
+Enemy <|-- ForestEnemy
+Enemy <|-- SpaceEnemy
+Pickup <|-- ForestPickup
+Pickup <|-- SpacePickup
+ForestFactory ..> ForestPlayer : creates
+ForestFactory ..> ForestEnemy : creates
+ForestFactory ..> ForestPickup : creates
+SpaceFactory ..> SpacePlayer : creates
+SpaceFactory ..> SpaceEnemy : creates
+SpaceFactory ..> SpacePickup : creates
+note top of Spawner
+Factory Method selects the category via a creator subclass.
+final spawn implements the common validation and registration flow.
+end note
+note bottom of GameObjectFamilyFactory
+Abstract Factory selects a coherent family across three categories.
+All spawners share one familyFactory per ArenaScene.
+end note
+@enduml

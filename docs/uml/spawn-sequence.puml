@@ -1,0 +1,31 @@
+@startuml
+title JSE - Enemy spawn and observer notification
+actor Developer
+participant ArenaScene as Scene
+participant EnemySpawner as Spawner
+participant "selected GameObjectFamilyFactory" as Family
+participant World
+participant EventBus as Bus
+participant EventLogObserver as Log
+Developer -> Scene : press 1
+Scene -> Scene : select free position / check demo limits
+Scene -> Spawner : spawn(world, request)
+Spawner -> Spawner : validate request and world capacity
+Spawner -> Spawner : createObject(request)
+Spawner -> Family : createEnemy(request)
+Family --> Spawner : ForestEnemy or SpaceEnemy
+Spawner -> World : enqueueAdd(enemy)
+World -> World : assign unique ID and queue object
+World --> Spawner : queued (void)
+Spawner --> Scene : enemy
+Scene -> Scene : enemy.setBehavior(ChaseBehavior)
+Scene -> World : commitChanges(tick)
+World -> World : add to active collection
+World -> Bus : publish(EntitySpawned)
+Scene -> Bus : dispatchPending()
+Bus -> Log : onEvent(EntitySpawned)
+note over Spawner,Family
+Spawner subclass chooses the product category.
+Family factory chooses the coherent theme.
+end note
+@enduml
