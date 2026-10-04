@@ -49,4 +49,6 @@ The Arena, factories, World, events, strategies and decorators remain planned. T
 
 ## Fresh source check
 
-The final committed source will be exported to a separate clean directory and built before handoff. Its result is recorded in the final verification update.
+The implementation commit `e19b9d7` was exported with `git archive HEAD` into a separate empty directory. No ignored files, preexisting target directory or local source materials were copied.
+
+From that exported source, Java 17 `./mvnw --batch-mode --no-transfer-progress clean verify` passed **23/23 tests** and produced the executable JAR. Packaged headless --help also returned successfully. The documentation update following this check changes no production or test code.

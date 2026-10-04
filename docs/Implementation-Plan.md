@@ -90,7 +90,7 @@ This milestone covers Emil's preparation and first implementation work. Steps ar
 
 The behavior tests are grouped into nine test classes rather than one file per contract. Geometry and input first passed 3 tests; rendering/assets brought the suite to 6; core to 13; Swing boundaries to 16; preview/settings to 18. Final regression coverage brings the suite to 23 tests. Each implementation batch was preceded by a failing targeted run.
 
-Independent review found shutdown during scene exit and logging during cache lookup. Both were reproduced with failing regression checks and fixed. See [verification](Verification.md) for final build and display results.
+Independent review found shutdown during scene exit and logging during cache lookup. Both were reproduced with failing regression checks and fixed. Failure cleanup also preserves the original cause if exit throws the same exception object. See [verification](Verification.md) for final build and display results.
 
 ## Review focus
 
