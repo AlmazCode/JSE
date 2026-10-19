@@ -14,9 +14,19 @@ Sabirzhanov Emil's first implementation milestone delivers:
 
 [Verification](Verification.md) records evidence and limitations. This status does not claim a complete Arena game or all six patterns.
 
-## Return at the next implementation milestone
+## Completed Decorator and Showcase milestone
 
-For Emil, the next coherent slice is Decorator plus Showcase. Start from Graphic and HealthView; add injected layer settings and regression tests for propagation and repeated toggles. Coordinate the six sprite resource paths with Aruzhan. Integrate game rendering only after the object model is available.
+Emil's independent week 6–7 rendering work now includes GraphicDecorator, OutlineDecorator and HealthBarDecorator, immutable style settings and GraphicLayers composition from an undecorated base. Renderer replacement propagates through the chain. Repeated toggles cannot grow that chain; live health is clamped against a positive maximum.
+
+`--example showcase` runs a standalone ShowcaseScene with base/decorated rectangles and Player/Enemy/Pickup sprites. F1 switches Filled/Wireframe, F2/F3 toggle layers, T switches Forest/Space, and Escape closes. Six original PNG resources, their editable generator and attribution are included. Showcase uses a HealthView sample with 2/3 health; it does not pretend to be a game Player.
+
+Build verification passes 42 tests. The packaged Showcase was exercised under the Linux display through installed Swing actions; see [verification](Verification.md) and [screenshots](screenshots/showcase-filled.png).
+
+## Remaining team integration
+
+For Emil, the remaining week 6–7 boundary is attaching graphics to real game entities and Arena/Title navigation once their owners supply the model and scenes. Reuse GraphicLayers with Player as HealthView and setRenderer on every frame. Do not duplicate game rules or build competing World/Player implementations.
+
+Incoming commit `2008b74` by Aruzhan adds minimal `jse.factory.GameObject`, `Player` and `Enemy` with console-only spawn methods. They currently lack Graphic, HealthView and the identity/position contracts specified for `jse.world`. Align that model before attaching rendering. The six resource paths in [sprite attribution](../src/main/resources/sprites/ATTRIBUTION.txt) are available for the family factories; agreement with Aruzhan remains a team handoff.
 
 Aruzhan can start the object model and factory families. Yasmina can start the EventBus and declare BehaviorStrategy, then implement World against the shared model. [Integration guide](Integration-Guide.md) defines the handoff.
 

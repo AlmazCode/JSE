@@ -24,7 +24,7 @@ import jse.render.RenderMode;
 import jse.render.awt.RenderStyle;
 
 public record LaunchSettings(EngineConfig engine, HostSettings host, KeyBindings keys, RenderStyle render,
-        MissingSpriteStyle placeholder, List<SpriteId> preload, PreviewSettings preview) {
+        MissingSpriteStyle placeholder, List<SpriteId> preload, PreviewSettings preview, ShowcaseSettings showcase) {
     public LaunchSettings {
         Objects.requireNonNull(engine, "engine");
         Objects.requireNonNull(host, "host");
@@ -32,6 +32,7 @@ public record LaunchSettings(EngineConfig engine, HostSettings host, KeyBindings
         Objects.requireNonNull(render, "render");
         Objects.requireNonNull(placeholder, "placeholder");
         Objects.requireNonNull(preview, "preview");
+        Objects.requireNonNull(showcase, "showcase");
         preload = List.copyOf(preload);
         preview.area(engine);
         if (render.fontSize() > preview.lineHeight())
@@ -39,10 +40,20 @@ public record LaunchSettings(EngineConfig engine, HostSettings host, KeyBindings
     }
 
     public static LaunchSettings load(Path overrides) throws IOException {
+        return load(overrides, LaunchArguments.Example.PREVIEW);
+    }
+
+    public static LaunchSettings load(Path overrides, LaunchArguments.Example example) throws IOException {
+        Objects.requireNonNull(example, "example");
         var values = new Properties();
         try (var stream = LaunchSettings.class.getResourceAsStream("/jse.properties")) {
             if (stream == null)
                 throw new IOException("Bundled jse.properties is missing");
+            values.load(new InputStreamReader(stream, StandardCharsets.UTF_8));
+        }
+        try (var stream = LaunchSettings.class.getResourceAsStream("/showcase.properties")) {
+            if (stream == null)
+                throw new IOException("Bundled showcase.properties is missing");
             values.load(new InputStreamReader(stream, StandardCharsets.UTF_8));
         }
         if (overrides != null) {
@@ -75,15 +86,25 @@ public record LaunchSettings(EngineConfig engine, HostSettings host, KeyBindings
                 reader.number("preview.header_height"), reader.number("preview.line_height"),
                 reader.color("preview.object_color"), reader.color("preview.text_color"),
                 reader.color("preview.muted_color"));
-        return new LaunchSettings(engine, host, bindings(values), render, placeholder, preload, preview);
+        return new LaunchSettings(engine, host, bindings(values, example), render, placeholder, preload, preview,
+                ShowcaseSettings.from(values));
     }
 
-    private static KeyBindings bindings(Properties values) {
+    private static KeyBindings bindings(Properties values, LaunchArguments.Example example) {
         var keys = new HashMap<Integer, GameAction>();
         for (String property : values.stringPropertyNames()) {
             if (!property.startsWith("input."))
                 continue;
             var action = GameAction.valueOf(property.substring("input.".length()).toUpperCase(Locale.ROOT));
+            boolean active = switch (action) {
+                case SWITCH_RENDERER, QUIT -> true;
+                case MOVE_UP, MOVE_DOWN, MOVE_LEFT, MOVE_RIGHT, PAUSE, RESTART ->
+                    example == LaunchArguments.Example.PREVIEW;
+                case TOGGLE_OUTLINE, TOGGLE_HEALTH_BAR, SWITCH_THEME ->
+                    example == LaunchArguments.Example.SHOWCASE;
+                default -> false;
+            };
+            if (!active) continue;
             for (String name : tokens(values.getProperty(property), false)) {
                 var stroke = KeyStroke.getKeyStroke("pressed " + name.toUpperCase(Locale.ROOT));
                 if (stroke == null || stroke.getKeyCode() == 0 || stroke.getModifiers() != 0)
@@ -105,7 +126,7 @@ public record LaunchSettings(EngineConfig engine, HostSettings host, KeyBindings
         return result;
     }
 
-    private record SettingsReader(Properties values) {
+    record SettingsReader(Properties values) {
         String text(String key) {
             var value = values.getProperty(key).trim();
             if (value.isEmpty())

@@ -40,7 +40,7 @@ Filled and Wireframe both draw real Java2D frames. SpriteGraphic and RectangleGr
 
 The preview moves one rectangle inside a viewport-derived area. Movement uses normalized input and explicit dt. Object size, speed, padding, header height, colors, fonts, input aliases and timing settings come from `jse.properties`. P pauses, R resets, F1 changes renderer and Escape closes the preview by default. Help labels are generated from the actual key bindings.
 
-Decorator, product factories, World, AI and Arena rules remain later milestones. The preview is a useful independent client of the engine, not a temporary implementation of those features.
+Product factories, World, AI and Arena rules remain later milestones. Decorator and an independent Showcase were delivered in the subsequent rendering milestone; see [development status](../Development-Status.md). The preview remains an independent client of the engine.
 
 ## Verification
 

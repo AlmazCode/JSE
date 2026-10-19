@@ -27,9 +27,15 @@ Implement typed events, Subscription and EventBus independently, then World/Enti
 
 Declare BehaviorStrategy early so Enemy can depend on its interface. Implement AI and physics after snapshots are stable. ArenaScene owns World, EventBus, rules and observers and closes them in onExit. EngineServices stays game-independent.
 
-## Emil's next deliverable
+## Emil's delivered rendering module and next integration
 
-Implement GraphicDecorator, OutlineDecorator and HealthBarDecorator. Forward renderer replacement through the wrapped chain, validate HealthView and inject layer styling. Rebuild from baseGraphic when toggles change. Add ShowcaseScene and resource-backed sprites after agreeing product resource IDs with Aruzhan.
+GraphicDecorator, OutlineDecorator, HealthBarDecorator and immutable DecorationSettings are implemented. Use `GraphicLayers.compose(baseGraphic, playerOrNull, outline, healthBar, settings)` to rebuild from the undecorated base. It composes Outline then HealthBar; pass Player as HealthView and null for non-player objects. Passing an already decorated base is rejected to prevent accidental chain growth. Direct decorator construction still supports arbitrary nested layers.
+
+Outline draws four bands outside the entity bounds; its width is independent of the renderer's stroke style. HealthBar reads live health, rejects nonpositive maxHealth and clamps the displayed ratio. Neither changes collision bounds. The independently runnable ShowcaseScene verifies the layers and uses a sample HealthView; it requires no World, ArenaRules or concrete Player.
+
+Both families now have original PNGs at `sprites/{forest,space}/{player,enemy,pickup}.png`. Showcase preloads all six before startup. Factories can consume these paths through FamilySprites after the team agrees them. The editable source is `tools/generate_sprites.py` and attribution ships with the sprites.
+
+The next integration requires the planned `jse.world` object model, including immutable baseGraphic/current graphic and Player implementing HealthView. The initial classes in incoming commit `2008b74` are console-only `jse.factory` sketches and do not yet provide these contracts. ArenaScene and TitleScene remain with Yasmina; connect Showcase navigation after those scenes exist.
 
 For rendering, use the Renderer passed to render on every frame; update current graphics with setRenderer. Do not retain a Graphics2D or cache a renderer choice only at scene entry. Factories use initialRenderer for construction; later frame rendering replaces it.
 

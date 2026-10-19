@@ -60,4 +60,22 @@ class RendererImageTest {
             assertNotEquals(0, image.getRGB(5, 10));
         }
     }
+
+    @Test
+    void wireframeSpriteLabelsStayBelowTheSpriteAndItsHealthLayer() {
+        var renderer = renderer(false);
+        var image = new BufferedImage(220, 90, BufferedImage.TYPE_INT_ARGB);
+        var graphics = image.createGraphics();
+        renderer.beginFrame(graphics, 220, 90);
+        new SpriteGraphic(renderer, new SpriteId("sprites/forest/player.png")).draw(new Rect(10, 25, 30, 30));
+        renderer.endFrame();
+        graphics.dispose();
+        int above = 0, below = 0;
+        for (int y = 5; y < 23; y++) for (int x = 10; x < 210; x++)
+            if (image.getRGB(x, y) != 0) above++;
+        for (int y = 57; y < 75; y++) for (int x = 10; x < 210; x++)
+            if (image.getRGB(x, y) != 0) below++;
+        assertEquals(0, above, "The area above a sprite is reserved for visual layers such as health");
+        assertTrue(below > 0, "The resource label must remain visible below the sprite");
+    }
 }

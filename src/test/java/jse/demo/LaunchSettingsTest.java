@@ -8,6 +8,28 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class LaunchSettingsTest {
     @TempDir Path directory;
+
+    @Test
+    void previewOverridesCanReuseKeysReservedOnlyByTheShowcase() throws Exception {
+        var path = directory.resolve("legacy.properties");
+        for (String value : new String[] {"input.move_up=T", "input.pause=F2", "input.restart=F3"}) {
+            Files.writeString(path, value);
+            assertDoesNotThrow(() -> LaunchSettings.load(path), value);
+        }
+    }
+
+    @Test
+    void eachExampleChecksConflictsOnlyAmongItsActiveActions() throws Exception {
+        var path = directory.resolve("shared-bindings.properties");
+        Files.writeString(path, "input.move_up=T\ninput.pause=F2\ninput.restart=F3\n");
+        assertDoesNotThrow(() -> LaunchSettings.load(path, LaunchArguments.Example.PREVIEW));
+        assertDoesNotThrow(() -> LaunchSettings.load(path, LaunchArguments.Example.SHOWCASE));
+        Files.writeString(path, "input.switch_renderer=T\n");
+        assertDoesNotThrow(() -> LaunchSettings.load(path, LaunchArguments.Example.PREVIEW));
+        assertThrows(IllegalArgumentException.class,
+                () -> LaunchSettings.load(path, LaunchArguments.Example.SHOWCASE));
+    }
+
     @Test
     void overridesAreValidatedBeforeLaunching() throws Exception {
         var path = directory.resolve("preview.properties");

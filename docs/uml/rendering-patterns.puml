@@ -1,5 +1,5 @@
 @startuml
-title Sabirzhanov Emil - implemented Bridge and planned Decorator
+title Sabirzhanov Emil - implemented Bridge and Decorator
 skinparam classAttributeIconSize 0
 abstract class Graphic <<Bridge Abstraction / Decorator Component>> {
   # renderer: Renderer
@@ -34,6 +34,10 @@ abstract class GraphicDecorator <<Base Decorator>> {
 }
 class OutlineDecorator <<Concrete Decorator>>
 class HealthBarDecorator <<Concrete Decorator>>
+class DecorationSettings <<immutable record>>
+class GraphicLayers {
+  + {static} compose(base: Graphic, health: HealthView, outline: boolean, healthBar: boolean, settings: DecorationSettings): Graphic
+}
 interface HealthView {
   + currentHealth(): int
   + maxHealth(): int
@@ -50,11 +54,16 @@ GraphicDecorator *--> Graphic : wrapped
 GraphicDecorator <|-- OutlineDecorator
 GraphicDecorator <|-- HealthBarDecorator
 HealthBarDecorator --> HealthView : read only
+OutlineDecorator --> DecorationSettings
+HealthBarDecorator --> DecorationSettings
+GraphicLayers ..> OutlineDecorator : optional first layer
+GraphicLayers ..> HealthBarDecorator : optional outer layer
 note bottom of GraphicDecorator
-Planned next milestone.
 draw delegates to wrapped, then adds its layer.
 setRenderer propagates into wrapped.
-Toggles rebuild from baseGraphic.
+GraphicLayers rebuilds from an undecorated base.
+Showcase verifies base and decorated views.
+Game entity integration remains planned.
 end note
 note bottom of FrameRenderer
 Both implementations draw real frames through Java2D.

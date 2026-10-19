@@ -52,3 +52,24 @@ The Arena, factories, World, events, strategies and decorators remain planned. T
 The implementation commit `e19b9d7` was exported with `git archive HEAD` into a separate empty directory. No ignored files, preexisting target directory or local source materials were copied.
 
 From that exported source, Java 17 `./mvnw --batch-mode --no-transfer-progress clean verify` passed **23/23 tests** and produced the executable JAR. Packaged headless --help also returned successfully. The documentation update following this check changes no production or test code.
+
+## Decorator and Showcase verification — 2026-10-19
+
+The subsequent rendering milestone was verified on Linux using OpenJDK 25.0.3, compiling with Java 17 release bytecode. `./mvnw clean verify` passed **42 tests across 14 classes, 0 failures, 0 errors, 0 skipped**. Java 17 itself and other operating systems were not re-tested in this milestone.
+
+New behavior checks cover:
+
+- GraphicDecoratorTest: base/layer order, configurable bands, live/clamped health, positive maximum, renderer replacement using real pixels, independent layers and 200 recompositions without chain growth.
+- ShowcaseSceneTest: comparison views, non-player health omission, 100 repeated toggles, theme/style preservation, renderer propagation, re-entry, focus behavior and quit precedence.
+- ShowcaseSettingsTest: resource profiles, overrides, bindings, invalid values, and clipping of samples, bars, borders and resource labels.
+- LaunchArgumentsTest: default preview, explicit examples, config option ordering and malformed/duplicate options.
+- GameSpritesTest: six distinct transparent PNGs decode and match the preloaded image cache.
+- RendererImageTest: sprite resource labels render below the image, without overlapping the health layer above it. The regression test failed with 253 unexpected pixels above the sprite before the change and passed afterward.
+
+Both implementation batches first failed because their new public types were absent, then passed after implementation. Packaged headless `--help` succeeded; invalid CLI and headless window startup returned exit status 2. The JAR includes showcase.properties, all six PNGs and their attribution; rendering still performs no resource reads.
+
+The packaged `DemoApplication` was opened on the available display with a real SwingHost at 960×540. Installed InputMap/ActionMap actions exercised F1, F2, F3, T and Escape with the running engine timer. Image checks confirmed plain, outline-only, health-only and combined states, Filled/Wireframe switching and normal window disposal. Forest/Space appearance and label placement were inspected in [showcase-filled.png](screenshots/showcase-filled.png), [showcase-wireframe.png](screenshots/showcase-wireframe.png), [showcase-space.png](screenshots/showcase-space.png) and [showcase-space-wireframe.png](screenshots/showcase-space-wireframe.png). These are content-component captures. X11 synthetic key injection did not establish reliable native input delivery; physical keyboard delivery remains unverified.
+
+This milestone completes the independent rendering deliverable. Arena, Title navigation, real Player health binding, World, factories, events and strategies remain integration work. Existing early object sketches from `2008b74` do not yet supply the planned graphics/health API.
+
+Independent review found two important issues: new Showcase bindings conflicted with old Preview overrides, and layout validation omitted configured help widths and font descent. Both were reproduced with failing tests and corrected. Binding conflict checks now include only the selected example's active actions; Preview can retain T/F2/F3 overrides. Showcase validation uses the actual configured help labels and font metrics. Its shared label formatter also keeps the footer correct after remapping. The final suite passes 42/42 tests.

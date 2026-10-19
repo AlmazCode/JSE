@@ -2,7 +2,7 @@
 
 **Product:** Java Simple Engine, a small 2D desktop runtime with example applications.
 
-**Current milestone:** Runtime foundation, version 0.1.0. **Target release:** Engine and Arena example, version 1.0.0.
+**Current milestone:** Runtime foundation plus Decorator/Showcase, version 0.1.0. **Target release:** Engine and Arena example, version 1.0.0.
 
 **Contributors:** Sabirzhanov Emil; Baktiyarova Aruzhan; Roziyeva Yasmina.
 
@@ -53,12 +53,12 @@ The team tracks five milestones: foundation, integration, feature completion, re
 | `jse.input` | GameAction, InputState, InputSource | Implemented |
 | `jse.core` | EngineConfig, EngineHost, EngineControl, EngineServices, Scene, SceneManager, JseEngine | Implemented |
 | `jse.platform.awt` | SwingHost, GamePanel, SwingInputSource, KeyBindings, HostSettings | Implemented |
-| `jse.render` | Renderer, Graphic, RectangleGraphic, SpriteGraphic, HealthView, RenderMode | Implemented; decorators planned |
+| `jse.render` | Renderer, Graphic, RectangleGraphic, SpriteGraphic, HealthView, RenderMode | Implemented; decorators and GraphicLayers included |
 | `jse.render.awt` | FrameRenderer, RenderStyle, FilledRenderer, WireframeRenderer | Implemented |
 | `jse.assets` | SpriteId, AssetManager, MissingSpriteStyle | Implemented |
-| `jse.demo` | LaunchSettings, PreviewSettings, PreviewScene, DemoApplication | Implemented; game scenes planned |
+| `jse.demo` | LaunchArguments, LaunchSettings, Preview/Showcase settings and scenes, DemoApplication | Implemented; Title/Arena planned |
 | `jse.world` | GameObject, Player, Enemy, Pickup, World and snapshots | Planned |
-| `jse.factory` | SpawnRequest, category spawners and family factories | Planned |
+| `jse.factory` | SpawnRequest, category spawners and family factories | Planned; basic console-only object sketches exist |
 | `jse.theme.forest`, `jse.theme.space` | Six concrete products | Planned |
 | `jse.ai` | BehaviorStrategy, Idle/Patrol/Chase/Flee and AiSystem | Planned |
 | `jse.event` | EventBus, typed events, listener and subscription | Planned |
@@ -140,11 +140,11 @@ public abstract class Graphic {
 
 Graphic is the Bridge abstraction; RectangleGraphic and SpriteGraphic are refined abstractions. Renderer is the implementor; FilledRenderer and WireframeRenderer are concrete implementors. Adding a graphic type and adding a renderer style are independent changes.
 
-Filled paints colored rectangles and scaled images. Wireframe outlines rectangles and draws sprite bounds, diagonals and resource labels. Both draw real Java2D output; a recording test renderer is not counted as a second production implementation. Both styles use one graphics backend.
+Filled paints colored rectangles and scaled images. Wireframe outlines rectangles and draws sprite bounds, diagonals and resource labels below sprites, leaving the health layer above unobstructed. Both draw real Java2D output; a recording test renderer is not counted as a second production implementation. Both styles use one graphics backend.
 
 FrameRenderer adds beginFrame(Graphics2D, width, height) and endFrame. Draw operations outside a frame and reentrant beginFrame fail. endFrame is idempotent. GamePanel copies its incoming graphics context and releases the copy after the frame. No graphics context survives a frame. Text position is a baseline; font, stroke, wireframe color and antialiasing come from RenderStyle.
 
-SpriteId is a relative classpath path, not a theme enum. Absolute paths, empty path segments and traversal are rejected. Example future paths are `sprites/forest/player.png` and `sprites/space/player.png`.
+SpriteId is a relative classpath path, not a theme enum. Absolute paths, empty path segments and traversal are rejected. The packaged original sprites use `sprites/{forest,space}/{player,enemy,pickup}.png`. The editable generator is `tools/generate_sprites.py`; attribution ships at `sprites/ATTRIBUTION.txt`.
 
 AssetManager is composed with a ClassLoader and MissingSpriteStyle. preload reads each ID at most once, closes streams and caches the decoded image or fallback. get performs no resource reads or logging; it returns a cached image or a configured placeholder. Looking up an unprepared ID does not prevent subsequent preload. Missing resources are diagnosed during preload, once per ID. Images returned by the cache are read-only by contract.
 
@@ -152,7 +152,7 @@ AssetManager is composed with a ClassLoader and MissingSpriteStyle. preload read
 
 The preview scene moves a configurable rectangle inside a viewport-derived area. Initial/reset position is centered; motion is normalized before applying speed × dt, then clamped to the area. Opposing directions cancel. Pause freezes movement but leaves commands available. Focus loss pauses without automatic resume. Reset centers and resumes.
 
-Bundled defaults are in `src/main/resources/jse.properties`. `--config FILE` overlays UTF-8 properties. `--help` prints usage without opening a window. Startup rejects unknown keys, invalid typed values, duplicate physical assignments and layouts that cannot fit the object. Help labels in the preview reflect configured bindings.
+Bundled runtime defaults are in `src/main/resources/jse.properties`; independent showcase visual defaults are in `showcase.properties`. Both feed the same validated override loader. `--config FILE` overlays UTF-8 properties. `--help` prints usage without opening a window. Startup rejects unknown keys, invalid typed values, duplicate physical assignments and layouts that cannot fit the object. Help labels in the preview reflect configured bindings.
 
 | Settings | Meaning |
 | --- | --- |
@@ -165,15 +165,15 @@ Bundled defaults are in `src/main/resources/jse.properties`. `--config FILE` ove
 
 Default controls are WASD/arrows, P pause, R reset, F1 style and Escape close. PreviewScene is an independent example; it does not stand in for the planned factories, game entities or AI.
 
-## Decorator — Planned; Emil
+## Decorator — Implemented; Emil
 
-GraphicDecorator extends Graphic and wraps a Graphic. draw first delegates, then adds its own layer. setRenderer updates itself and propagates to the wrapped graphic. OutlineDecorator adds a configurable border. HealthBarDecorator reads HealthView and draws the clamped current/max ratio; maxHealth must be positive.
+GraphicDecorator extends Graphic and wraps a Graphic. draw first delegates, then adds its own layer. setRenderer updates itself and propagates to the wrapped graphic. OutlineDecorator adds four configurable-width rectangle bands outside the original bounds; Filled fills the bands and Wireframe outlines them. This keeps layer width separate from the renderer's stroke style. HealthBarDecorator reads HealthView and draws the clamped current/max ratio; maxHealth must be positive.
 
-Decorator styling belongs in an immutable settings value: proposed defaults are a 2-pixel outline, bar offset 6, height 4, green fill and dark background. Bar position is visual only and does not modify collision bounds.
+Decorator styling belongs in immutable DecorationSettings: configured defaults are a 2-pixel outline, bar offset 6, height 4, green fill and dark background. Bar position is visual only and does not modify collision bounds.
 
 GameObject retains immutable baseGraphic and replaceable graphic. Toggle handlers rebuild from baseGraphic in a fixed order, Outline then HealthBar, rather than repeatedly wrapping the existing decorated graphic. Health applies only to Player. Repeated F2/F3 toggles must not grow the chain. Renderer replacement must reach every wrapped component.
 
-The showcase must exercise SpriteGraphic and RectangleGraphic under both renderers, each alone and with combined decorators, and display a partial health value such as 2/3.
+GraphicLayers.compose(base, healthOrNull, outline, healthBar, settings) rebuilds Outline then HealthBar and rejects an already decorated base. Null health omits the health layer. The standalone Showcase exercises SpriteGraphic and RectangleGraphic under both renderers, plain and with individual/combined decorators, with a configured 2/3 HealthView sample. GameObject/Player attachment remains planned until the model provides the specified contracts.
 
 ## Entity model — Planned; Aruzhan
 
@@ -270,7 +270,7 @@ Outcome is evaluated after commit: health zero takes priority over collecting th
 
 Ticks increment for each scene update, including pause; timing-sensitive rules receive dt only during active play. Event dispatch continues when commands produce events during pause.
 
-## Scenes and controls — Planned
+## Game scenes and controls — Planned; standalone Showcase implemented
 
 TitleScene offers Enter for Arena and H for Showcase. Escape returns from Arena/Showcase to Title. Current preview uses Escape to close; game scenes will interpret BACK_TO_TITLE separately from QUIT.
 
@@ -291,7 +291,7 @@ Changing theme starts a new World, health and score, preserving renderer/decorat
 
 Paused scenes keep painting; renderer/decorator/log toggles and behavior selection remain available. Losing focus clears input and pauses; returning focus does not resume. On exit, close observers and EventBus, discard World and references, and clear input through core transition handling. Repeat reset/theme/menu cycles must leave no duplicate events or subscriptions.
 
-Showcase reuses core and graphics without World or ArenaRules. It displays basic and decorated rectangles/sprites, Filled/Wireframe switching and a partial Player health bar. It is Emil's next example milestone.
+Showcase reuses core and graphics without World or ArenaRules. It displays basic and decorated rectangles/sprites, Filled/Wireframe switching and a partial Player health bar. It is independently runnable with `--example showcase`; preview remains the default and can be selected with `--example preview`. In standalone Showcase, F1 changes renderer, F2/F3 rebuild layers, T changes the displayed sprite family while retaining layer/style choices, and Escape closes. It compares base/decorated rectangles and three sprite categories side by side. Only the rectangle sample and Player sprite receive health layers. ShowcaseSettings validates viewport dimensions, decoration extents, resource/help label widths and actual font metrics before opening the window. LaunchSettings.load(path, example) selects active bindings for that example; load(path) preserves Preview defaults. Title/Arena navigation and real entity integration remain planned.
 
 ## Error handling and configuration boundaries
 

@@ -108,12 +108,14 @@ Independent review found shutdown during scene exit and logging during cache loo
 | Roziyeva Yasmina | EventBus, event records, World/WorldView | Object model and math | Queued changes, immutable snapshots, stable dispatch and unsubscribe tests |
 | Baktiyarova Aruzhan | EntitySpawner subclasses, Forest/Space families | Model, World, SpriteGraphic | Three categories × two families; pending-to-active transition |
 | Roziyeva Yasmina | Patrol/Chase/Flee, motion/collision and ArenaRules | World and object model | Strategy swaps preserve IDs; single pickup collection; cooldown and loss priority |
-| Sabirzhanov Emil | GraphicDecorator, Outline/HealthBar, game sprites and showcase | Existing Graphic; HealthView from Player | Composable layers, no growing chain on repeated toggles |
+| Sabirzhanov Emil | Decorators, six sprites and independent showcase delivered; attach to game objects next | Player implementing HealthView; baseGraphic/current graphic; Arena/Title scenes | Rendering verified independently; game attachment pending |
 | All | Title/Arena/Showcase integration | Above modules | One packaged JAR, stable scene cleanup and shared rendering |
 
 See [integration guide](Integration-Guide.md) for the concrete handoff contracts. The runtime milestone ends with working infrastructure; it does not mark teammates' game patterns complete.
 
 ## Release milestones
+
+Emil's rendering milestone is implemented and verified separately from Arena. See the [execution plan](superpowers/plans/2026-10-19-emil-decorators-showcase.md) and [verification](Verification.md). This does not complete teammates' patterns or game integration.
 
 - Foundation: deterministic runtime and runnable preview.
 - Integration: six working pattern structures inside the Arena example.
