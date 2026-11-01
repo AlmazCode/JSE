@@ -23,4 +23,9 @@ public interface BehaviorStrategy {
     default Vec2 desiredVelocity(Enemy enemy, WorldView world, double dt) {
         return calculateMovement(enemy, world, dt);
     }
+
+    /** Short human-readable name used by events and diagnostics. */
+    default String name() {
+        return getClass().getSimpleName().replace("Behavior", "");
+    }
 }
