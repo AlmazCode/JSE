@@ -3,6 +3,8 @@ package jse.demo;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Supplier;
+import jse.render.VisualPreferences;
 import jse.core.EngineServices;
 import jse.core.Scene;
 import jse.input.GameAction;
@@ -21,7 +23,8 @@ import jse.render.SpriteGraphic;
 public final class ShowcaseScene implements Scene {
     private final ShowcaseSettings settings;
     private final KeyBindings keys;
-    private final RenderMode initialMode;
+    private final VisualPreferences preferences;
+    private final Supplier<Scene> menu;
     private final HealthView health;
     private final List<Sample> samples = new ArrayList<>();
     private EngineServices services;
@@ -29,9 +32,14 @@ public final class ShowcaseScene implements Scene {
     private boolean space, outline, healthBar;
 
     public ShowcaseScene(ShowcaseSettings settings, KeyBindings keys, RenderMode initialMode) {
+        this(settings, keys, new VisualPreferences(initialMode), null);
+    }
+
+    public ShowcaseScene(ShowcaseSettings settings, KeyBindings keys, VisualPreferences preferences, Supplier<Scene> menu) {
         this.settings = Objects.requireNonNull(settings, "settings");
         this.keys = Objects.requireNonNull(keys, "keys");
-        this.initialMode = Objects.requireNonNull(initialMode, "initialMode");
+        this.preferences = Objects.requireNonNull(preferences, "preferences");
+        this.menu = menu;
         health = new HealthView() {
             public int currentHealth() { return settings.currentHealth(); }
             public int maxHealth() { return settings.maxHealth(); }
@@ -41,9 +49,11 @@ public final class ShowcaseScene implements Scene {
     @Override
     public void onEnter(EngineServices services) {
         this.services = Objects.requireNonNull(services, "services");
-        mode = initialMode;
+        mode = preferences.mode();
         space = false;
-        outline = healthBar = true;
+        outline = preferences.outline();
+        healthBar = preferences.healthBar();
+        if (menu != null) services.control().setRenderMode(mode);
         rebuildSamples(services.initialRenderer());
     }
 
@@ -66,16 +76,21 @@ public final class ShowcaseScene implements Scene {
     public void update(double dt, InputState input) {
         if (!Double.isFinite(dt) || dt < 0)
             throw new IllegalArgumentException("Update delta must be finite and nonnegative");
+        if (menu != null && input.isPressed(GameAction.BACK_TO_TITLE)) {
+            services.control().requestScene(menu.get());
+            return;
+        }
         if (input.isPressed(GameAction.QUIT)) {
             services.control().stop();
             return;
         }
         if (input.isPressed(GameAction.SWITCH_RENDERER)) {
-            mode = mode == RenderMode.FILLED ? RenderMode.WIREFRAME : RenderMode.FILLED;
+            preferences.toggleRenderer();
+            mode = preferences.mode();
             services.control().setRenderMode(mode);
         }
-        if (input.isPressed(GameAction.TOGGLE_OUTLINE)) outline = !outline;
-        if (input.isPressed(GameAction.TOGGLE_HEALTH_BAR)) healthBar = !healthBar;
+        if (input.isPressed(GameAction.TOGGLE_OUTLINE)) { preferences.toggleOutline(); outline = preferences.outline(); }
+        if (input.isPressed(GameAction.TOGGLE_HEALTH_BAR)) { preferences.toggleHealthBar(); healthBar = preferences.healthBar(); }
         if (input.isPressed(GameAction.SWITCH_THEME)) {
             space = !space;
             rebuildSamples(services.initialRenderer());

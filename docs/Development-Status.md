@@ -1,44 +1,32 @@
 # Development Status
 
-## Completed foundation
+## Completed Emil rendering and platform work
 
-Sabirzhanov Emil's first implementation milestone delivers:
+The runtime foundation includes fixed updates, scene lifecycle/cleanup, Swing hosting, keyboard input, validated startup configuration, preloaded assets and actual Filled/Wireframe renderers. Bridge and Decorator are implemented, with configurable outline/health layers, six original sprites and an independent Showcase.
 
-- Java 17 build, executable packaging and CI configuration.
-- Immutable geometry/input, validated startup settings and external overrides.
-- Fixed updates with bounded catch-up, scene transitions and failure/shutdown cleanup.
-- Swing window, keyboard aliases, focus handling and repaint boundaries.
-- Bridge graphics, Filled/Wireframe output and preloaded image cache/fallback.
-- A standalone runtime preview with movement, pause, reset and style switching.
-- Behavior tests, independent code review and English public documentation.
+The remaining Emil integration is now delivered:
 
-[Verification](Verification.md) records evidence and limitations. This status does not claim a complete Arena game or all six patterns.
+- EntityGraphics uses real GameObject.baseGraphic/current graphic and live Player health. F1/F2/F3 preserve IDs, positions, health and collision bounds. Removed entities and exited scenes release applied decorations.
+- `--example game` opens Title, with Enter for Arena and H for Showcase. Escape returns to Title; Escape at Title closes. Standalone Preview/Showcase retain their existing behavior.
+- GameScenes owns persistent VisualPreferences and theme; reset/theme/menu transitions create fresh runs with monotonic run IDs while keeping visual choices.
+- Both sprite families are preloaded before window startup. Arena uses all three real entity categories; game wireframes omit resource paths to keep crowded layouts legible.
+- Tests cover live health pixels, renderer replacement, repeated layer changes and 20 actual engine cycles through reset/theme/menu/Showcase. Each cycle closes three runs, for 60 verified cleanups.
 
-## Completed Decorator and Showcase milestone
+## Shared dependencies integrated
 
-Emil's independent week 6–7 rendering work now includes GraphicDecorator, OutlineDecorator and HealthBarDecorator, immutable style settings and GraphicLayers composition from an undecorated base. Renderer replacement propagates through the chain. Repeated toggles cannot grow that chain; live health is clamped against a positive maximum.
+Aruzhan's `25e9cdb` and Yasmina's `9c2e3ae` are merged into the integration feature branch, preserving their authors. The missing shared dependencies were completed under their specified canonical names rather than duplicated in another model:
 
-`--example showcase` runs a standalone ShowcaseScene with base/decorated rectangles and Player/Enemy/Pickup sprites. F1 switches Filled/Wireframe, F2/F3 toggle layers, T switches Forest/Space, and Escape closes. Six original PNG resources, their editable generator and attribution are included. Showcase uses a HealthView sample with 2/3 health; it does not pretend to be a game Player.
+- World, immutable EntityView/WorldView snapshots, queued additions/removals and stable identities.
+- ForestFactory/SpaceFactory, all six concrete products and the existing three spawners.
+- BehaviorStrategy's Enemy import is corrected; calculateMovement remains compatible and desiredVelocity is available. IdleBehavior is implemented.
+- MotionSystem, sorted collision pairs and basic ArenaRules supply real movement, collection and contact damage for the renderer integration.
 
-Build verification passes 42 tests. The packaged Showcase was exercised under the Linux display through installed Swing actions; see [verification](Verification.md) and [screenshots](screenshots/showcase-filled.png).
+The basic run has eight pickups, a target score of eight, one contact damage per 0.75 active seconds, pause/focus handling and win/loss freezing. Loss wins ties. Rules and physics are separate from rendering/navigation and can be extended by Yasmina.
 
-## Remaining team integration
+## Verification and remaining team work
 
-For Emil, the remaining week 6–7 boundary is attaching graphics to real game entities and Arena/Title navigation once their owners supply the model and scenes. Reuse GraphicLayers with Player as HealthView and setRenderer on every frame. Do not duplicate game rules or build competing World/Player implementations.
+`./mvnw clean verify` passes **67 tests**. The packaged application was checked on Linux through an actual Swing window, installed input actions and 20 additional route cycles. The final check verified native Java Robot Enter delivery; other controls used installed Swing actions. Physical keyboard delivery remains unverified; Windows/macOS were not tested. See [verification](Verification.md).
 
-Incoming commit `2008b74` by Aruzhan adds minimal `jse.factory.GameObject`, `Player` and `Enemy` with console-only spawn methods. They currently lack Graphic, HealthView and the identity/position contracts specified for `jse.world`. Align that model before attaching rendering. The six resource paths in [sprite attribution](../src/main/resources/sprites/ATTRIBUTION.txt) are available for the family factories; agreement with Aruzhan remains a team handoff.
+Emil's listed rendering/navigation integration is complete. Remaining project work belongs to the advanced game milestones: Patrol/Chase/Flee and AiSystem, enemy selection/behavior switching, full deferred typed event semantics and migration of legacy event contracts, HUD/log observers, diagnostic spawning and the final six-pattern release walkthrough. The current EventBus remains Yasmina's synchronous draft for compatibility; no full Observer acceptance is claimed. The current grid layout is an integration profile; the reference AI/layout profile remains a team follow-up.
 
-Aruzhan can start the object model and factory families. Yasmina can start the EventBus and declare BehaviorStrategy, then implement World against the shared model. [Integration guide](Integration-Guide.md) defines the handoff.
-
-## Delivery sequence
-
-| Stage | Team objective | Completion condition |
-| --- | --- | --- |
-| Foundation | Emil's runtime and stable shared boundaries | Preview builds and runs without game modules |
-| First integration | Model, events, World, families and decorators | Each component's behavior tests pass; contracts agree |
-| Gameplay | Strategies, physics, rules, observers and scenes | One playable Arena run and independent Showcase |
-| Feature completion | Controls, reset/theme behavior, outcomes and diagnostics | No missing target behavior; cleanup regression checks |
-| Release candidate | End-to-end checks, diagrams, screenshots and report | Fresh-source package builds; packaged JAR verified |
-| Release | Team review and final artifact preparation | Source/JAR/docs match and actual platform checks are recorded |
-
-The working schedule assigns foundation to weeks 4–5, integration to week 6, gameplay to week 7, feature completion to week 8 and release verification to week 9. The target is a verified release by the end of week 9.
+The next handoff is described in [the integration guide](Integration-Guide.md). Source, screenshots and UML distinguish the implemented integration from the remaining game release.

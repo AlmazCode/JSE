@@ -63,7 +63,8 @@ draw delegates to wrapped, then adds its layer.
 setRenderer propagates into wrapped.
 GraphicLayers rebuilds from an undecorated base.
 Showcase verifies base and decorated views.
-Game entity integration remains planned.
+EntityGraphics integrates real GameObject and Player.
+VisualPreferences survives scene changes.
 end note
 note bottom of FrameRenderer
 Both implementations draw real frames through Java2D.

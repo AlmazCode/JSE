@@ -4,7 +4,7 @@ import java.nio.file.Path;
 import jse.core.Scene;
 
 public record LaunchArguments(boolean help, Path config, Example example) {
-    public enum Example { PREVIEW, SHOWCASE }
+    public enum Example { PREVIEW, SHOWCASE, GAME }
 
     public static LaunchArguments parse(String[] args) {
         if (args.length == 1 && args[0].equals("--help"))
@@ -23,6 +23,7 @@ public record LaunchArguments(boolean help, Path config, Example example) {
                 example = switch (value) {
                     case "preview" -> Example.PREVIEW;
                     case "showcase" -> Example.SHOWCASE;
+                    case "game" -> Example.GAME;
                     default -> throw new IllegalArgumentException("Unknown example: " + value);
                 };
                 selected = true;
@@ -35,6 +36,7 @@ public record LaunchArguments(boolean help, Path config, Example example) {
 
     public Scene createScene(LaunchSettings settings) {
         return switch (example) {
+            case GAME -> new GameScenes(settings).title();
             case PREVIEW -> new PreviewScene(settings.preview(), settings.keys(), settings.host().initialMode());
             case SHOWCASE -> {
                 settings.showcase().validateLayout(settings.engine(), settings.render(), settings.keys());

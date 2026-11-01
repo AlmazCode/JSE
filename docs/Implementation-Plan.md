@@ -104,21 +104,25 @@ Independent review found shutdown during scene exit and logging during cache loo
 
 | Owner | Next deliverable | Dependencies | Acceptance |
 | --- | --- | --- | --- |
-| Baktiyarova Aruzhan | GameObject/Player/Enemy/Pickup and SpawnRequest | Math, Graphic, HealthView; BehaviorStrategy contract with Yasmina | Typed model and validation tests |
-| Roziyeva Yasmina | EventBus, event records, World/WorldView | Object model and math | Queued changes, immutable snapshots, stable dispatch and unsubscribe tests |
-| Baktiyarova Aruzhan | EntitySpawner subclasses, Forest/Space families | Model, World, SpriteGraphic | Three categories × two families; pending-to-active transition |
+| Baktiyarova Aruzhan | Model and SpawnRequest delivered; maintain game products | Math, Graphic, HealthView; BehaviorStrategy contract with Yasmina | Typed model and validation tests |
+| Roziyeva Yasmina | World/snapshots delivered; complete queued EventBus and event migration | Object model and math | Queued changes, immutable snapshots, stable dispatch and unsubscribe tests |
+| Baktiyarova Aruzhan | Three spawners and both six-product families delivered | Model, World, SpriteGraphic | Three categories × two families; pending-to-active transition |
 | Roziyeva Yasmina | Patrol/Chase/Flee, motion/collision and ArenaRules | World and object model | Strategy swaps preserve IDs; single pickup collection; cooldown and loss priority |
-| Sabirzhanov Emil | Decorators, six sprites and independent showcase delivered; attach to game objects next | Player implementing HealthView; baseGraphic/current graphic; Arena/Title scenes | Rendering verified independently; game attachment pending |
-| All | Title/Arena/Showcase integration | Above modules | One packaged JAR, stable scene cleanup and shared rendering |
+| Sabirzhanov Emil | Real entity graphics, persistent display choices and Title/Arena/Showcase integration delivered | Integrated model, factories and World | Live Player health and renderer pixels; repeated toggles; 20 engine transition cycles |
+| All | Basic scene integration delivered; complete advanced AI/Observer release | Above modules | One packaged JAR, stable scene cleanup and shared rendering |
 
 See [integration guide](Integration-Guide.md) for the concrete handoff contracts. The runtime milestone ends with working infrastructure; it does not mark teammates' game patterns complete.
 
 ## Release milestones
 
-Emil's rendering milestone is implemented and verified separately from Arena. See the [execution plan](superpowers/plans/2026-10-19-emil-decorators-showcase.md) and [verification](Verification.md). This does not complete teammates' patterns or game integration.
+Emil's independent rendering milestone and subsequent real-entity/menu integration are implemented and verified. See the [execution plan](superpowers/plans/2026-10-19-emil-decorators-showcase.md) and [verification](Verification.md). This does not complete teammates' patterns or game integration.
 
 - Foundation: deterministic runtime and runnable preview.
 - Integration: six working pattern structures inside the Arena example.
 - Feature completion: scene controls, game outcomes, reset/theme switching and showcase.
 - Release candidate: contract tests, diagrams matching code, screenshots and documentation.
 - Release: fresh-checkout build, packaged resources, cross-platform checks and a tagged version.
+
+## Emil game integration result — 2026-11-01
+
+[Execution plan](superpowers/plans/2026-11-01-emil-game-integration.md): teammate branches integrated, canonical shared dependencies completed, EntityGraphics connected to Player/GameObject, persistent preferences and game navigation delivered. The suite passes 67 tests. See [verification](Verification.md) for packaged/display checks and remaining advanced AI/Observer scope.

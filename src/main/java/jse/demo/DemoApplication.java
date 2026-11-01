@@ -20,11 +20,12 @@ public final class DemoApplication {
         try {
             var arguments = LaunchArguments.parse(args);
             if (arguments.help()) {
-                System.out.println("Usage: java -jar jse-demo.jar [--example preview|showcase] [--config FILE]\n"
-                        + "Launch the JSE runtime preview (default) or rendering showcase.\n"
+                System.out.println("Usage: java -jar jse-demo.jar [--example preview|showcase|game] [--config FILE]\n"
+                        + "Launch the JSE runtime preview (default), rendering showcase or game menu.\n"
                         + "FILE is a UTF-8 properties override.\n"
                         + "Preview: WASD / arrows, P pause, R reset, F1 renderer, Escape close.\n"
-                        + "Showcase: F1 renderer, F2 outline, F3 health, T theme, Escape close.");
+                        + "Showcase: F1 renderer, F2 outline, F3 health, T theme, Escape close.\n"
+                        + "Game: Enter Arena, H Showcase, Escape menu/close, P pause, R reset, T theme.");
                 return;
             }
             var settings = LaunchSettings.load(arguments.config(), arguments.example());
@@ -33,7 +34,7 @@ public final class DemoApplication {
                 throw new IllegalStateException("The selected example requires a desktop display");
             var assets = new AssetManager(DemoApplication.class.getClassLoader(), settings.placeholder());
             var preload = new ArrayList<>(settings.preload());
-            if (arguments.example() == LaunchArguments.Example.SHOWCASE)
+            if (arguments.example() != LaunchArguments.Example.PREVIEW)
                 preload.addAll(settings.showcase().sprites());
             assets.preload(preload);
             SwingUtilities.invokeLater(() -> launch(settings, assets, scene, arguments.example()));
@@ -49,9 +50,11 @@ public final class DemoApplication {
         if (example == LaunchArguments.Example.SHOWCASE)
             hostSettings = new jse.platform.awt.HostSettings("JSE | Rendering Showcase",
                     hostSettings.background(), hostSettings.initialMode());
+        if (example == LaunchArguments.Example.GAME)
+            hostSettings = new jse.platform.awt.HostSettings("JSE | Game", hostSettings.background(), hostSettings.initialMode());
         var host = new SwingHost(hostSettings, input,
                 Map.of(RenderMode.FILLED, new FilledRenderer(assets, settings.render()), RenderMode.WIREFRAME,
-                        new WireframeRenderer(assets, settings.render())));
+                        new WireframeRenderer(assets, settings.render(), example != LaunchArguments.Example.GAME)));
         var engine = new JseEngine(settings.engine(), host, input);
         engine.start(scene);
     }

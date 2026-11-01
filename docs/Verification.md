@@ -73,3 +73,20 @@ The packaged `DemoApplication` was opened on the available display with a real S
 This milestone completes the independent rendering deliverable. Arena, Title navigation, real Player health binding, World, factories, events and strategies remain integration work. Existing early object sketches from `2008b74` do not yet supply the planned graphics/health API.
 
 Independent review found two important issues: new Showcase bindings conflicted with old Preview overrides, and layout validation omitted configured help widths and font descent. Both were reproduced with failing tests and corrected. Binding conflict checks now include only the selected example's active actions; Preview can retain T/F2/F3 overrides. Showcase validation uses the actual configured help labels and font metrics. Its shared label formatter also keeps the footer correct after remapping. The final suite passes 42/42 tests.
+
+## Real entity and game scene integration — 2026-11-01
+
+The integration feature branch incorporates Aruzhan `25e9cdb` and Yasmina `9c2e3ae` with their original history. Missing canonical World/Idle/family dependencies were implemented, and the AI Enemy import was aligned. The actual object model is used by EntityGraphics; no parallel fake Player/World exists.
+
+On Linux, `./mvnw clean verify` passes **67 tests, 0 failures, 0 errors, 0 skipped**. New checks cover:
+
+- World queued lifecycle, stable IDs, immutable snapshots, cancellation, bounds/family/capacity validation, mutation-safe iteration and close behavior.
+- Both factories, all six products and all three spawners; actual Player damage and category size validation; default Idle intent.
+- EntityGraphics live health pixels and renderer replacement after frame disposal, 200 layer changes without growth, non-player health omission and retired graphics restoration.
+- Actual movement, pause/focus loss, contact cooldown, single pickup collection, loss priority, win/loss freezing and visual controls after an outcome.
+- Twenty cycles through actual JseEngine transitions: Arena reset, alternate theme, menu, Showcase and back. The tests retain 60 old runs and verify closed EventBuses, inactive Players and empty old Worlds. This verifies run cleanup, not the still-pending Observer subscription acceptance.
+- CLI/context bindings and invalid game settings/layout. Independent review found a Title baseline clipping case (`game.line_height=70`, `game.header_height=374`); the failing regression was observed, then fixed using the same text source for drawing and font measurement.
+
+The packaged `--example game` entry point was run in a real 960×540 Swing window. Installed keyboard actions exercised F1/F2/F3, R/T, Enter/H/Escape and 20 additional route cycles with a running timer. A held movement action moved the real Player into an enemy; its health fell to 2/3 and the actual health bar changed. Screenshots were inspected: [Title](screenshots/game-title.png), [Arena Filled](screenshots/game-arena-filled.png), [Arena Wireframe](screenshots/game-arena-wireframe.png), [damaged Player](screenshots/game-player-damaged.png), [Space](screenshots/game-space-wireframe.png) and [menu-hosted Showcase](screenshots/game-showcase-menu.png).
+
+Native Java Robot Enter delivery succeeded on the final run; an earlier attempt required the installed-action fallback. Native delivery of every control, physical human keyboard input and Windows/macOS remain unverified. Standalone Preview/Showcase automated behavior remains covered. The current EventBus is synchronous, enemies use Idle, and full advanced AI/Observer/reference-layout release acceptance remains pending.

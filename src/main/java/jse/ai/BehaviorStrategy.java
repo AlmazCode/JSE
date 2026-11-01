@@ -1,6 +1,6 @@
 package jse.ai;
 
-import jse.factory.Enemy;
+import jse.world.Enemy;
 import jse.world.WorldView;
 import jse.math.Vec2;
 
@@ -19,4 +19,8 @@ public interface BehaviorStrategy {
      * @return directional velocity vector (Vec2)
      */
     Vec2 calculateMovement(Enemy enemy, WorldView world, double dt);
+
+    default Vec2 desiredVelocity(Enemy enemy, WorldView world, double dt) {
+        return calculateMovement(enemy, world, dt);
+    }
 }

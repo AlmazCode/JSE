@@ -16,7 +16,12 @@ final class ShowcaseLabels {
         return keys.label(GameAction.SWITCH_RENDERER) + ": renderer  |  "
                 + keys.label(GameAction.TOGGLE_OUTLINE) + ": outline  |  "
                 + keys.label(GameAction.TOGGLE_HEALTH_BAR) + ": health  |  "
-                + keys.label(GameAction.SWITCH_THEME) + ": theme  |  " + keys.label(GameAction.QUIT) + ": close";
+                + keys.label(GameAction.SWITCH_THEME) + ": theme  |  " + exit(keys);
+    }
+
+    private static String exit(KeyBindings keys) {
+        return keys.label(GameAction.BACK_TO_TITLE).isBlank() ? keys.label(GameAction.QUIT) + ": close"
+                : keys.label(GameAction.BACK_TO_TITLE) + ": menu";
     }
 
     static String state(boolean outline, boolean healthBar) {

@@ -1,8 +1,8 @@
 @startuml
-title Planned: Baktiyarova Aruzhan - Factory Method and Abstract Factory
+title Integrated: Baktiyarova Aruzhan contracts - Factory Method and Abstract Factory
 skinparam classAttributeIconSize 0
 abstract class "EntitySpawner<T extends GameObject>" as Spawner <<Creator>> {
-  # familyFactory: GameObjectFamilyFactory
+  # factory: GameObjectFamilyFactory
   + spawn(world: World, request: SpawnRequest): T
   # {abstract} createObject(request: SpawnRequest): T
 }

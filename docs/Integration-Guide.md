@@ -13,21 +13,21 @@ The runtime compiles independently. Aruzhan and Yasmina can implement their modu
 
 Review [public source](../src/main/java/jse) for exact signatures and [the specification](JSE-Technical-Specification.md) for invariants.
 
-## Aruzhan's first deliverable
+## Aruzhan model/factory handoff
 
-Implement ObjectKind, ThemeId, SpawnRequest and the GameObject/Player/Enemy/Pickup category model. Preserve separate baseGraphic/current graphic, one-time World-assigned IDs and category/family invariants. Inject health, speed, pickup value and resource paths through settings rather than duplicating literals in product classes.
+ObjectKind, ThemeId, SpawnRequest, GameObject/Player/Enemy/Pickup, both factories, six products and three spawners are integrated and tested. For further changes, preserve separate baseGraphic/current graphic, one-time World-assigned IDs and category/family invariants. Inject health, speed, pickup value and resource paths through settings rather than duplicating literals in product classes.
 
 Agree BehaviorStrategy and entity mutation methods with Yasmina first. ID/active/removal mutations should remain package-private in `jse.world`, callable by World. Public clients use read-only identity and state accessors.
 
-Then implement six products, GameObjectFamilyFactory, ForestFactory/SpaceFactory and three EntitySpawner subclasses. Keep final spawn's validation/registration flow separate from protected createObject. Wait for World.enqueueAdd instead of introducing a competing World implementation. Model and family construction tests can run earlier.
+Maintain the integrated six-product matrix, GameObjectFamilyFactory, ForestFactory/SpaceFactory and three EntitySpawner subclasses. Keep final spawn's validation/registration flow separate from protected createObject. Use the implemented World.enqueueAdd and immutable snapshots instead of introducing a competing World implementation. Model and family construction tests can run earlier.
 
-## Yasmina's first deliverable
+## Yasmina remaining game systems
 
-Implement typed events, Subscription and EventBus independently, then World/EntityView/WorldView against the agreed model. Enforce exact-class dispatch, a batch snapshot, deferred publications, close semantics and deterministic IDs/queued changes. Inject capacity through settings.
+The initial event bus, shared World/snapshots and basic physics/rules are integrated. Complete the deferred event pipeline and observer layer against those sources. Enforce exact-class dispatch, a batch snapshot, deferred publications, close semantics and deterministic IDs/queued changes. Inject capacity through settings.
 
-Declare BehaviorStrategy early so Enemy can depend on its interface. Implement AI and physics after snapshots are stable. ArenaScene owns World, EventBus, rules and observers and closes them in onExit. EngineServices stays game-independent.
+Extend BehaviorStrategy/Idle with Patrol/Chase/Flee and AiSystem now that snapshots are available. MotionSystem and CollisionSystem are already implemented. ArenaScene owns World, EventBus, rules and observers and closes them in onExit. EngineServices stays game-independent.
 
-## Emil's delivered rendering module and next integration
+## Emil's completed rendering and scene integration
 
 GraphicDecorator, OutlineDecorator, HealthBarDecorator and immutable DecorationSettings are implemented. Use `GraphicLayers.compose(baseGraphic, playerOrNull, outline, healthBar, settings)` to rebuild from the undecorated base. It composes Outline then HealthBar; pass Player as HealthView and null for non-player objects. Passing an already decorated base is rejected to prevent accidental chain growth. Direct decorator construction still supports arbitrary nested layers.
 
@@ -35,8 +35,13 @@ Outline draws four bands outside the entity bounds; its width is independent of 
 
 Both families now have original PNGs at `sprites/{forest,space}/{player,enemy,pickup}.png`. Showcase preloads all six before startup. Factories can consume these paths through FamilySprites after the team agrees them. The editable source is `tools/generate_sprites.py` and attribution ships with the sprites.
 
-The next integration requires the planned `jse.world` object model, including immutable baseGraphic/current graphic and Player implementing HealthView. The initial classes in incoming commit `2008b74` are console-only `jse.factory` sketches and do not yet provide these contracts. ArenaScene and TitleScene remain with Yasmina; connect Showcase navigation after those scenes exist.
+The real `jse.world` model is now integrated. EntityGraphics renders any current iterable of real GameObjects and composes Player health layers from its actual HealthView. It owns only applied visual layers, restores retired entities to their base graphic and closes on scene exit. VisualPreferences is shared through GameScenes, never through global/core state.
 
+TitleScene, ArenaScene and the menu-hosted Showcase are connected through `--example game`. ArenaRun owns the World/EventBus lifetime and delegates motion/collisions/consequences to separate systems/rules. Twenty engine cycles exercise reset, theme, menu and Showcase cleanup. The initial grid and Idle enemies provide a runnable integration; advanced AI/reference layout and observers remain follow-up work.
+
+WorldView is now the immutable snapshot record defined by the shared API. Its old getPlayerPosition/isWithinBounds accessors remain compatibility adapters. BehaviorStrategy uses jse.world.Enemy, retains calculateMovement and offers desiredVelocity. Avoid reintroducing jse.factory entity sketches.
+
+The inherited EventBus and EventListener/GameEvent marker contracts remain compatible and synchronous. New EntitySpawned/EntityRemoved/ItemCollected/HealthChanged/GameFinished records carry runId/tick. Coordinate the next deferred-dispatch migration with World and ArenaRules; do not assume the full queued Observer contract is implemented.
 For rendering, use the Renderer passed to render on every frame; update current graphics with setRenderer. Do not retain a Graphics2D or cache a renderer choice only at scene entry. Factories use initialRenderer for construction; later frame rendering replaces it.
 
 ## Shared integration order

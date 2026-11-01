@@ -1,7 +1,7 @@
 @startuml
-title JSE 0.1.0 - implemented runtime
+title JSE 0.1.0 - implemented runtime and game rendering integration
 skinparam componentStyle rectangle
-component "demo\nLaunchSettings, PreviewScene, DemoApplication" as demo
+component "demo\nLaunchSettings, PreviewScene, ShowcaseScene, GameScenes, ArenaRun, EntityGraphics" as demo
 component "core\nJseEngine, SceneManager, EngineHost" as core
 component "input\nInputSource, InputState, GameAction" as input
 component "platform/awt\nSwingHost, GamePanel, SwingInputSource" as platform
@@ -9,11 +9,27 @@ component "render\nGraphic, Renderer, RenderMode" as render
 component "render/awt\nFrameRenderer, FilledRenderer, WireframeRenderer" as awtrender
 component "assets\nAssetManager, SpriteId" as assets
 component "math\nVec2, Rect, Rgba" as math
-artifact "jse.properties" as settings
+artifact "jse.properties, showcase.properties, game.properties" as settings
+component "world\nWorld, GameObject, snapshots" as world
+component "factory/themes\nSpawners, Forest/Space products" as factory
+component "physics\nMotionSystem, CollisionSystem" as physics
+component "event\nSynchronous EventBus, events" as events
+component "ai\nBehaviorStrategy, Idle" as ai
 demo ..> settings : typed configuration
 demo ..> core : compose and start
 demo ..> platform : desktop composition
-demo ..> render : RectangleGraphic
+demo ..> render : current-frame graphics and preferences
+demo ..> world
+demo ..> factory
+demo ..> physics
+demo ..> events
+factory ..> world
+factory ..> render
+world ..> render
+world ..> events
+world ..> ai
+ai ..> world
+physics ..> world
 demo ..> awtrender : renderer composition
 demo ..> assets : preload before startup
 core ..> input : snapshot per fixed step

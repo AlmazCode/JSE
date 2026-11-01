@@ -1,6 +1,6 @@
 # Java Simple Engine
 
-JSE is a compact Java 17 runtime for 2D desktop applications. It provides fixed updates, scene lifecycle, keyboard actions and interchangeable Java2D rendering. A configurable preview and rendering showcase run independently of the planned Arena game.
+JSE is a compact Java 17 runtime for 2D desktop applications. It provides fixed updates, scene lifecycle, keyboard actions and interchangeable Java2D rendering. It includes a configurable preview, an independent rendering showcase and a basic Arena integration with real game entities.
 
 ![Runtime preview](docs/screenshots/runtime-filled.png)
 
@@ -31,9 +31,21 @@ Use **F1** for Filled/Wireframe, **F2** for outline, **F3** for health bars, **T
 
 ![Rendering showcase](docs/screenshots/showcase-filled.png)
 
+## Game integration
+
+```sh
+java -jar target/jse-demo.jar --example game
+```
+
+The menu offers **Enter** for Arena and **H** for Showcase. **Escape** returns to the menu and closes from the menu. In Arena, use WASD/arrows to move, **P** to pause, **R** for a fresh run, **T** for the other theme, and **F1/F2/F3** for renderer/outline/health layers. Losing focus pauses until P is pressed. Visual choices survive reset, theme changes and menu/Showcase transitions.
+
+Collect eight pickups and avoid enemy contact. The health bar reads the real Player; contact deals one damage with a 0.75-second cooldown. Win/loss freezes movement while keeping visual and navigation controls. The current enemies use IdleBehavior; advanced AI and Observer HUD/log integration remain planned.
+
+![Arena rendering integration](docs/screenshots/game-arena-filled.png)
+
 ## Configuration
 
-Runtime defaults live in [jse.properties](src/main/resources/jse.properties); showcase visuals and sprite paths live in [showcase.properties](src/main/resources/showcase.properties). Supply a UTF-8 file containing only the values to override:
+Runtime defaults live in [jse.properties](src/main/resources/jse.properties); showcase visuals and shared sprite paths live in [showcase.properties](src/main/resources/showcase.properties); game values live in [game.properties](src/main/resources/game.properties). Supply a UTF-8 file containing only the values to override:
 
 ```properties
 window.width=1024
@@ -47,15 +59,15 @@ input.move_up=I,UP
 java -jar target/jse-demo.jar --config preview.properties
 ```
 
-Showcase overrides include `showcase.outline_width`, `showcase.bar_offset`, `showcase.bar_height`, `showcase.health_current`, `showcase.health_max` and each `showcase.forest_*` / `showcase.space_*` sprite path. Showcase layout is checked before its window opens, including the border, health bar and Wireframe resource labels. Larger samples or fonts may need a larger window.
+Showcase overrides include `showcase.outline_width`, `showcase.bar_offset`, `showcase.bar_height`, `showcase.health_current`, `showcase.health_max` and each `showcase.forest_*` / `showcase.space_*` sprite path. Showcase and game layouts are checked before startup, including borders, health bars, configured help text and menu font metrics. Larger samples or fonts may need a larger window.
 
 Unknown keys, conflicting bindings, invalid colors and layouts that cannot fit the object are rejected before startup. Resource paths are relative to the classpath; configured sprites are preloaded before the update timer starts.
 
 ## Project status
 
-The runtime foundation, Bridge and Decorator are implemented, with two working renderer styles and two independently runnable examples. Six original transparent sprites are packaged; their editable source and attribution are included.
+The runtime foundation, Bridge and Decorator are implemented, with two working renderer styles, two standalone examples and a game menu/integration. Six original transparent sprites are packaged; their editable source and attribution are included.
 
-The Arena game, themed factories, AI and events remain planned. The incoming basic `jse.factory.GameObject`, `Player` and `Enemy` classes are an early model sketch; they do not yet implement the shared game contracts. See [development status](docs/Development-Status.md) for completed work and the next handoff.
+The real entity model, both family factories, three spawners, World snapshots and basic Arena movement/rules are integrated. Advanced AI and the complete deferred event/Observer workflow remain planned. See [development status](docs/Development-Status.md) for completed work and the next handoff.
 
 ## Team
 
@@ -65,7 +77,7 @@ The Arena game, themed factories, AI and events remain planned. The incoming bas
 | Baktiyarova Aruzhan | Game object model, spawners, Forest/Space families, arena layout | Factory Method; Abstract Factory |
 | Roziyeva Yasmina | World, AI, collisions, events, rules, game scenes and observers | Strategy; Observer |
 
-Bridge and Decorator are implemented. Factory Method, Abstract Factory, Strategy and Observer remain planned; their intended structures and acceptance checks are documented individually.
+Bridge, Decorator, Factory Method and Abstract Factory are implemented. Strategy has an interface and Idle implementation; Observer has the initial event-bus foundation. Their complete game acceptance remains planned; their intended structures and acceptance checks are documented individually.
 
 ## Documentation
 
@@ -76,4 +88,4 @@ Bridge and Decorator are implemented. Factory Method, Abstract Factory, Strategy
 - [Verification](docs/Verification.md): commands, results and practical limits.
 - [Contributing](CONTRIBUTING.md) and [GitHub setup](docs/GitHub-Setup.md).
 
-[Runtime architecture](docs/uml/rendered/runtime-architecture.svg), runtime lifecycle and [rendering patterns](docs/uml/rendered/rendering-patterns.svg) describe implemented code. The game diagrams are explicitly marked as planned integration.
+[Runtime architecture](docs/uml/rendered/runtime-architecture.svg), runtime lifecycle and [rendering patterns](docs/uml/rendered/rendering-patterns.svg) and factory patterns describe implemented code. The target architecture and advanced behavior diagrams retain their planned labels.

@@ -2,7 +2,7 @@
 
 **Product:** Java Simple Engine, a small 2D desktop runtime with example applications.
 
-**Current milestone:** Runtime foundation plus Decorator/Showcase, version 0.1.0. **Target release:** Engine and Arena example, version 1.0.0.
+**Current milestone:** Real entity rendering and game scene integration, version 0.1.0. **Target release:** Engine and Arena example, version 1.0.0.
 
 **Contributors:** Sabirzhanov Emil; Baktiyarova Aruzhan; Roziyeva Yasmina.
 
@@ -56,15 +56,15 @@ The team tracks five milestones: foundation, integration, feature completion, re
 | `jse.render` | Renderer, Graphic, RectangleGraphic, SpriteGraphic, HealthView, RenderMode | Implemented; decorators and GraphicLayers included |
 | `jse.render.awt` | FrameRenderer, RenderStyle, FilledRenderer, WireframeRenderer | Implemented |
 | `jse.assets` | SpriteId, AssetManager, MissingSpriteStyle | Implemented |
-| `jse.demo` | LaunchArguments, LaunchSettings, Preview/Showcase settings and scenes, DemoApplication | Implemented; Title/Arena planned |
-| `jse.world` | GameObject, Player, Enemy, Pickup, World and snapshots | Planned |
-| `jse.factory` | SpawnRequest, category spawners and family factories | Planned; basic console-only object sketches exist |
-| `jse.theme.forest`, `jse.theme.space` | Six concrete products | Planned |
-| `jse.ai` | BehaviorStrategy, Idle/Patrol/Chase/Flee and AiSystem | Planned |
-| `jse.event` | EventBus, typed events, listener and subscription | Planned |
-| `jse.physics` | MotionSystem and CollisionSystem | Planned |
+| `jse.demo` | LaunchArguments, LaunchSettings, Preview/Showcase settings and scenes, DemoApplication | Implemented; Title/Arena/Showcase navigation and basic Arena run included |
+| `jse.world` | GameObject, Player, Enemy, Pickup, World and snapshots | Implemented |
+| `jse.factory` | SpawnRequest, category spawners and family factories | Implemented |
+| `jse.theme.forest`, `jse.theme.space` | Six concrete products | Implemented |
+| `jse.ai` | BehaviorStrategy and Idle | Implemented; Patrol/Chase/Flee/AiSystem planned |
+| `jse.event` | Synchronous draft EventBus, legacy and canonical events | Implemented foundation; complete queued Observer workflow planned |
+| `jse.physics` | MotionSystem and CollisionSystem | Implemented |
 
-Core depends on InputSource, Renderer and EngineHost, never on World or EventBus. The desktop host implements core callbacks and prepares frames. Renderers depend on assets; graphics depend on Renderer. Game scenes compose factories, World, systems, rules and observers. No global engine or mutable service locator is used.
+Core depends on InputSource, Renderer and EngineHost, never on World or EventBus. The desktop host implements core callbacks and prepares frames. Renderers depend on assets; graphics depend on Renderer. Game scenes compose factories, World, systems and rules; the Observer layer is a planned addition. No global engine or mutable service locator is used.
 
 ## Geometry and input — Implemented
 
@@ -173,9 +173,9 @@ Decorator styling belongs in immutable DecorationSettings: configured defaults a
 
 GameObject retains immutable baseGraphic and replaceable graphic. Toggle handlers rebuild from baseGraphic in a fixed order, Outline then HealthBar, rather than repeatedly wrapping the existing decorated graphic. Health applies only to Player. Repeated F2/F3 toggles must not grow the chain. Renderer replacement must reach every wrapped component.
 
-GraphicLayers.compose(base, healthOrNull, outline, healthBar, settings) rebuilds Outline then HealthBar and rejects an already decorated base. Null health omits the health layer. The standalone Showcase exercises SpriteGraphic and RectangleGraphic under both renderers, plain and with individual/combined decorators, with a configured 2/3 HealthView sample. GameObject/Player attachment remains planned until the model provides the specified contracts.
+GraphicLayers.compose(base, healthOrNull, outline, healthBar, settings) rebuilds Outline then HealthBar and rejects an already decorated base. Null health omits the health layer. The standalone Showcase exercises SpriteGraphic and RectangleGraphic under both renderers, plain and with individual/combined decorators, with a configured 2/3 HealthView sample. EntityGraphics now attaches these layers to real GameObjects and reads actual Player health; VisualPreferences survives game scene transitions. It restores retired entities to baseGraphic and releases its references on exit.
 
-## Entity model — Planned; Aruzhan
+## Entity model — Implemented; Aruzhan model integrated
 
 ObjectKind is PLAYER, ENEMY or PICKUP. ThemeId is FOREST or SPACE. SpawnRequest contains position and positive size. GameObject stores category, family, position, size, velocity, assigned ID, active/removal state, immutable baseGraphic and current graphic. Its bounds derive from position and size. No entity draws directly through Graphics2D.
 
@@ -185,7 +185,7 @@ Before registration an object has ID 0 and active=false. World alone assigns a p
 
 Game values must be injected through category settings; do not hardcode speed, health or pickup values in six product constructors. Target defaults: player size 24×24, speed 220, health 3; enemy size 24×24, speed 110; pickup size 16×16, value 1.
 
-## Factory Method and Abstract Factory — Planned; Aruzhan
+## Factory Method and Abstract Factory — Implemented; Aruzhan contracts integrated
 
 GameObjectFamilyFactory defines familyId and createPlayer/createEnemy/createPickup. ForestFactory and SpaceFactory produce three related products with corresponding SpriteGraphic resource IDs. They receive Renderer and validated entity settings. All category spawners in one ArenaScene share the same selected family factory.
 
@@ -195,7 +195,7 @@ Factory Method selects a product category through creator subclasses. Abstract F
 
 Acceptance requires all three creators and both concrete families, validation of mismatched products, a coherent six-product matrix and identical game rules after a theme switch.
 
-## World and snapshots — Planned; Yasmina
+## World and snapshots — Implemented integration dependency
 
 World is constructed with a positive runId, arena, family identity, injected capacity and scene-owned EventBus. enqueueAdd validates family, bounds, size, capacity and unregistered identity, assigns the next ID and reserves space. IDs increase monotonically per World and are never reused.
 
@@ -205,11 +205,13 @@ commitChanges(tick) applies removals first, then additions in ID order. Committe
 
 WorldView contains an immutable List<EntityView>, Optional<Vec2> playerPosition and arena. EntityView contains ID, category, family, position and bounds, with no mutable GameObject or Graphic reference. Both active view and spawn view exclude pending removals. A saved snapshot remains unchanged after the world mutates.
 
+World.close deactivates objects, clears pending/active storage and rejects further mutation; it does not own the EventBus, which ArenaRun closes. WorldView retains getPlayerPosition/isWithinBounds adapters for the initial AI interface. Lifecycle events publish after structural changes, so callback additions belong to the next commit.
+
 Default World capacity is 128 including queued additions. Arena policy separately allows one Player, at most 16 Enemies and at most 16 Pickups. Capacity and category limits are injected settings, not runtime constants.
 
-## Strategy and physics — Planned; Yasmina
+## Strategy and physics — Physics/Idle implemented; advanced AI planned
 
-BehaviorStrategy defines `Vec2 desiredVelocity(Enemy enemy, WorldView world, double dt)`. It returns intent; it does not mutate World or position. dt must be positive and finite. AiSystem applies strategy results to velocities; MotionSystem alone integrates positions and clamps them to arena bounds.
+BehaviorStrategy retains calculateMovement with a desiredVelocity alias and now uses jse.world.Enemy. Idle validates positive finite dt. The remaining target behavior contract defines `Vec2 desiredVelocity(Enemy enemy, WorldView world, double dt)`. It returns intent; it does not mutate World or position. dt must be positive and finite. AiSystem applies strategy results to velocities; MotionSystem alone integrates positions and clamps them to arena bounds.
 
 Idle returns ZERO. Patrol holds two waypoints and its current target. Near a target it returns direction × min(speed, distance/dt) so it does not overshoot, then changes target for the following update. Chase follows the player and returns ZERO without a target or at zero distance. Flee moves away within a configurable radius, default 180; outside it returns ZERO. Exact player/enemy overlap chooses a stable rightward direction.
 
@@ -217,9 +219,11 @@ Behavior replacement changes neither entity ID nor position nor family. Publish 
 
 CollisionSystem reads WorldView and returns distinct positive ID pairs with min/max ordering, sorted by firstId then secondId. Positive area overlap is required. Physics owns detection; ArenaRules owns consequences.
 
-## Observer and events — Planned; Yasmina
+## Observer and events — Target contract; full implementation planned
 
-GameEvent exposes runId and tick. EventBus supports typed subscribe, publish, dispatchPending and close. subscribe accepts `Class<E>` and `GameEventListener<? super E>` and returns idempotent AutoCloseable Subscription. Routing uses the exact event class. Duplicate subscriptions for the same class and listener identity fail.
+The inherited EventBus currently retains its synchronous publish/drainDeferred semantics and marker GameEvent/EventListener contracts. Existing tests continue to pass. New canonical lifecycle/rule records carry runId/tick, alongside unchanged legacy EntitySpawnedEvent/EntityDamagedEvent. HUD/log observers, BehaviorChanged, bounded queued dispatch and full subscription semantics below remain a coordinated migration task; they are not claimed complete.
+
+The target contract follows: GameEvent exposes runId and tick. EventBus supports typed subscribe, publish, dispatchPending and close. subscribe accepts `Class<E>` and `GameEventListener<? super E>` and returns idempotent AutoCloseable Subscription. Routing uses the exact event class. Duplicate subscriptions for the same class and listener identity fail.
 
 At dispatch start, snapshot the queued events and listener lists for all types in that batch. Events published inside callbacks and subscriptions created inside callbacks take effect only in a later dispatch. Before each callback, check that the subscription is still open. Recursive dispatch is prohibited. Default queued capacity is 1024; overflow fails visibly. Close clears queued events/subscriptions and rejects further use.
 
@@ -238,11 +242,15 @@ HudObserver subscribes separately to ItemCollected, HealthChanged and GameFinish
 
 Both retain and close their subscriptions. Disabling the log closes its observer; reenabling creates an empty observer and does not replay missed events. Rules never read HUD state. Pause/selected AI may be displayed directly from read-only scene state.
 
-## Arena example — Planned
+## Arena example — Basic run implemented; reference AI profile planned
+
+The implemented integration launches with `--example game`: GameScenes supplies Title/Arena/Showcase navigation and monotonic run IDs; ArenaRun owns World/EventBus/Player/rules, ArenaScene owns EntityGraphics and commands. MotionSystem and CollisionSystem are separate from rules and rendering. The game.properties integration profile derives an evenly spaced grid containing one Player, three Idle enemies and eight pickups; dimensions include health/outline extents and header text. Both family factories and all three spawners create the real objects. The run implements normalized movement, active-time cooldown damage, single pickup collection, pause, reset/theme switching and win/loss control freezing. Rendering uses actual entity state; visual controls never replace the World or its identities. Game wireframes omit resource path labels; standalone Showcase retains them.
+
+The remaining reference profile below is a target for the advanced AI/Observer phase, not the current grid layout:
 
 ArenaScene owns a fresh EventBus, World, observers and rules for each run. Shared preferences retain theme, renderer, decoration toggles and log enabled state; they are explicitly passed, not global. Run IDs come from a composition-root LongSupplier and start at 1.
 
-For the reference 960×540 viewport the arena is (24, 64, 912, 452). This is the game's layout profile, separate from the current preview header. Store the profile and object layout in game resources/typed settings; a resized viewport must use a compatible validated profile or derived coordinates.
+For the future reference 960×540 viewport the arena is (24, 64, 912, 452). This is the game's layout profile, separate from the current preview header. Store the profile and object layout in game resources/typed settings; a resized viewport must use a compatible validated profile or derived coordinates.
 
 | Initial object | Top-left position | Behavior |
 | --- | --- | --- |
@@ -254,7 +262,7 @@ For the reference 960×540 viewport the arena is (24, 64, 912, 452). This is the
 
 The layout queues 12 objects, commits tick 0 and dispatches before first paint. It is owned by Aruzhan. Diagnostic spawning finds the first free grid cell, row-major, starting (48,88) with spacing 48 in the reference profile. Search respects bounds and active plus queued objects. If no free cell or category slot remains, show a clear English status and skip spawning.
 
-An active update performs this order:
+The target active update performs this order (the current run omits step 3 AI updates and uses synchronous event publication instead of step 7 batching):
 
 1. Resolve commands and early scene transition requests.
 2. Set Player velocity from normalized input.
@@ -270,9 +278,9 @@ Outcome is evaluated after commit: health zero takes priority over collecting th
 
 Ticks increment for each scene update, including pause; timing-sensitive rules receive dt only during active play. Event dispatch continues when commands produce events during pause.
 
-## Game scenes and controls — Planned; standalone Showcase implemented
+## Game scenes and controls — Navigation and basic controls implemented
 
-TitleScene offers Enter for Arena and H for Showcase. Escape returns from Arena/Showcase to Title. Current preview uses Escape to close; game scenes will interpret BACK_TO_TITLE separately from QUIT.
+TitleScene offers Enter for Arena and H for Showcase. Escape returns from Arena/Showcase to Title. Preview and standalone Showcase use Escape to close; the game interprets BACK_TO_TITLE separately from QUIT and closes only at Title.
 
 | Action | Default game key | Behavior |
 | --- | --- | --- |
@@ -281,17 +289,17 @@ TitleScene offers Enter for Arena and H for Showcase. Escape returns from Arena/
 | Theme | T | New run with alternate family |
 | Renderer | F1 | Change style without resetting model |
 | Outline / health | F2 / F3 | Rebuild decorator chain from base graphics |
-| Enemy selection | Tab | Cycle active enemies in ID order |
-| Behavior | B | Cycle Patrol → Chase → Flee for selected enemy |
-| Diagnostic spawn | N / M | Spawn Enemy / Pickup at first free location |
-| Event log | L | Close or create log observer |
+| Enemy selection (planned) | Tab | Cycle active enemies in ID order |
+| Behavior (planned) | B | Cycle Patrol → Chase → Flee for selected enemy |
+| Diagnostic spawn (planned) | N / M | Spawn Enemy / Pickup at first free location |
+| Event log (planned) | L | Close or create log observer |
 | Menu / showcase | Escape / H | Return to Title / open Showcase from Title |
 
 Changing theme starts a new World, health and score, preserving renderer/decorator/log preferences. Reset does the same within the current theme. Log history and selected enemy reset per run. Command transition precedence is Escape → T → R → Enter/H; after selecting one, skip remaining commands that update. API callers still use the core's last-request-wins rule.
 
 Paused scenes keep painting; renderer/decorator/log toggles and behavior selection remain available. Losing focus clears input and pauses; returning focus does not resume. On exit, close observers and EventBus, discard World and references, and clear input through core transition handling. Repeat reset/theme/menu cycles must leave no duplicate events or subscriptions.
 
-Showcase reuses core and graphics without World or ArenaRules. It displays basic and decorated rectangles/sprites, Filled/Wireframe switching and a partial Player health bar. It is independently runnable with `--example showcase`; preview remains the default and can be selected with `--example preview`. In standalone Showcase, F1 changes renderer, F2/F3 rebuild layers, T changes the displayed sprite family while retaining layer/style choices, and Escape closes. It compares base/decorated rectangles and three sprite categories side by side. Only the rectangle sample and Player sprite receive health layers. ShowcaseSettings validates viewport dimensions, decoration extents, resource/help label widths and actual font metrics before opening the window. LaunchSettings.load(path, example) selects active bindings for that example; load(path) preserves Preview defaults. Title/Arena navigation and real entity integration remain planned.
+Showcase reuses core and graphics without World or ArenaRules. It displays basic and decorated rectangles/sprites, Filled/Wireframe switching and a partial Player health bar. It is independently runnable with `--example showcase`; preview remains the default and can be selected with `--example preview`. In standalone Showcase, F1 changes renderer, F2/F3 rebuild layers, T changes the displayed sprite family while retaining layer/style choices, and Escape closes. It compares base/decorated rectangles and three sprite categories side by side. Only the rectangle sample and Player sprite receive health layers. ShowcaseSettings validates viewport dimensions, decoration extents, resource/help label widths and actual font metrics before opening the window. LaunchSettings.load(path, example) selects active bindings for that example; load(path) preserves Preview defaults. Title/Arena navigation and real entity rendering are implemented via `--example game`; its Showcase shares VisualPreferences and Escape returns to the menu.
 
 ## Error handling and configuration boundaries
 
@@ -336,9 +344,9 @@ The technical report covers introduction/problem, scope, architecture, six patte
 
 The target walkthrough opens the packaged application, starts Arena, moves/pauses, changes theme, swaps renderer, combines decorators, changes selected enemy behavior, disables/reenables the log, reaches an outcome, restarts and opens Showcase. Explain the object and event flow alongside the visible actions. Maintain local source, diagrams and release files for reproducibility.
 
-## Shared game API — Planned
+## Shared game API — Integrated model/world/factories; target advanced APIs
 
-These signatures define the first integration contract. Add each public type in its own file. Settings are supplied by the game composition root; their defaults come from a game resource profile. Do not modify the current runtime configuration to embed game rules.
+The model/factory/World signatures below are implemented. AI/Observer signatures describe the remaining target contract; the current compatibility adapters and synchronous event semantics are noted above. Add each public type in its own file. Settings are supplied by the game composition root; their defaults come from a game resource profile. Do not modify the current runtime configuration to embed game rules.
 
 ```java
 // jse.factory

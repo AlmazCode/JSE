@@ -1,19 +1,19 @@
 package jse.world;
 
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import jse.math.Rect;
 import jse.math.Vec2;
 
-/**
- * Read-only view of the game world for AI strategies and observers.
- */
-public interface WorldView {
+public record WorldView(List<EntityView> entities, Optional<Vec2> playerPosition, Rect arena) {
+    public WorldView {
+        entities = List.copyOf(entities);
+        Objects.requireNonNull(playerPosition, "playerPosition");
+        Objects.requireNonNull(arena, "arena");
+    }
 
-    /**
-     * Gets the current position of the player, if present.
-     */
-    Vec2 getPlayerPosition();
-
-    /**
-     * Checks if a point is within world boundaries.
-     */
-    boolean isWithinBounds(Vec2 position);
+    /** Compatibility with the initial AI interface; new clients use playerPosition(). */
+    public Vec2 getPlayerPosition() { return playerPosition.orElse(null); }
+    public boolean isWithinBounds(Vec2 position) { return arena.contains(position); }
 }
