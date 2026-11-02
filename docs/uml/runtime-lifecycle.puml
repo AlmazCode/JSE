@@ -1,5 +1,6 @@
 @startuml
-title JSE 0.1.0 - fixed updates and frame lifetime
+!include style.puml
+title Fixed updates and frame lifetime
 participant SwingHost as Host
 participant JseEngine as Engine
 participant FixedStepClock as Clock

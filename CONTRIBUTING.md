@@ -1,36 +1,63 @@
-# Contributing to JSE
+# Working on JSE
 
-Project documentation, UI text, comments and diagnostics are English. Discuss changes in the language comfortable for the team, then record the resulting decisions in English.
-
-## Ownership
-
-Sabirzhanov Emil maintains the runtime, desktop platform, input, rendering and assets. Baktiyarova Aruzhan maintains game objects, product families and creation flows. Roziyeva Yasmina maintains World, AI, events, physics, game rules and game scenes. Core Scene and SceneManager belong to the runtime; ArenaScene, TitleScene and their state belong to the game.
-
-Use [the integration guide](docs/Integration-Guide.md) before changing a shared signature. A module's owner reviews changes to its contracts. Ownership describes responsibility, not a restriction on assistance; commits record their actual contributors.
-
-## Development
+Use JDK 17 or newer. Application text, source comments and committed documentation are in English. Keep the Java build independent of the optional report-publishing tools.
 
 ```sh
 ./mvnw clean verify
-java -jar target/jse-demo.jar
+java -jar target/jse-demo.jar --example game
 ```
 
-Use a focused branch such as `feature/forest-family`, `feature/event-bus` or `feature/render-decorators`. Keep commits coherent and describe the behavior they introduce. Open a pull request with the problem, resulting behavior, validation and any remaining integration dependency. The default branch is `main`.
+## Java style
 
-## Design rules
+The formatter is Eclipse JDT 4.35, run by Spotless with [the committed profile](config/java-format.xml). `verify` checks the result; format edits with:
 
-- Pass dependencies explicitly through constructors. Avoid global mutable state, engine lookups and service registries.
-- Keep engine code independent of the Arena example. Game defaults belong in typed game settings or resource files.
-- Keep mutable runtime and game state on the starting thread. Swing operations run on EDT.
-- Retain no Graphics2D reference after endFrame. Load resources before rendering.
-- Validate invariants where values enter a module. Prefer immutable records and defensive snapshots at boundaries.
-- Comments explain a non-obvious reason or invariant. Names and small methods explain ordinary operations.
-- Do not add a pattern solely to increase the pattern count. Each planned pattern has a specific role in the example.
+```sh
+./mvnw spotless:apply
+```
 
-## Verification and documentation
+Use four spaces and a 100-column wrapping target. Import types and static methods explicitly. Put braces around control-flow bodies and declare variables separately. Keep a blank line between methods and group fields by their role. Use `@Override` for implemented methods. Choose names that describe the game or runtime operation; comments should explain an invariant or a reason that the code alone does not show.
 
-Write behavior tests for changed timing, lifecycle, factories, world mutations, event delivery and game rules. Use explicit timestamps instead of sleeps. Swing component tests run on EDT using buffered images; they do not require a desktop. Native window checks are reported separately.
+The source follows ordinary Java naming and control-flow conventions, with references to [Google Java Style](https://google.github.io/styleguide/javaguide.html) and [JUnit's contributor guide](https://github.com/junit-team/junit-framework/blob/main/CONTRIBUTING.md). Four-space indentation and the Eclipse profile are project choices, so this is not a claim of strict Google Style compliance. [libGDX's Group](https://github.com/libgdx/libgdx/blob/1.13.1/gdx/src/com/badlogic/gdx/scenes/scene2d/Group.java) was also consulted for focused scene operations and lifecycle documentation; its formatting conventions are not copied.
 
-Before requesting review, run the relevant checks and update docs or diagrams when a public contract changes. Do not claim cross-platform behavior, a complete Arena game or a working pattern without verifying it.
+## Runtime boundaries
 
-Keep generated build output and local source materials out of Git. Store original artwork and its attribution with the game resources when those are added. Maven Wrapper notices remain intact.
+Pass dependencies through constructors. Keep game rules and theme selection outside `core`. Mutable runtime state belongs to the starting thread; the Swing host runs on the event dispatch thread. World mutations cross a commit boundary, while EventBus delivery is synchronous. Preserve those distinct contracts when changing integration code.
+
+Load assets before rendering. A renderer may retain Graphics2D only between beginFrame and endFrame. Compose optional layers from the base graphic rather than from the current decorator chain. Close scene-owned observers and world state on exit.
+
+Use behavior tests for changes to timing, lifecycle, event order, spawning and rules. Timing tests should advance explicit timestamps. Swing component tests execute on EDT using buffered images. Desktop verification is a separate check; it is not part of the headless Maven suite.
+
+## Figures and verification
+
+After a passing build, on a graphical desktop:
+
+```sh
+java -cp target/jse-demo.jar tools/DesktopVerification.java
+python3 tools/evidence.py
+```
+
+The verifier captures `docs/screenshots` and writes `target/verification/desktop.json`. The evidence command records test totals, runtime details and a source digest in `docs/verification.json`. It must be run before another `clean`, which removes the desktop result. The verifier reports whether native Enter worked; most checks use registered Swing actions.
+
+UML is written in PlantUML. Use PlantUML 1.2026.8 to regenerate PNG and SVG output under `docs/uml/rendered`; `style.puml` contains shared monochrome settings. Source diagrams remain the editable reference.
+
+## Report and submission bundle
+
+The report source is [report.md](docs/report/report.md). The generator extracts complete methods from Java and fills verification values from the recorded evidence. Python 3.10+ and python-docx are needed only to publish the report:
+
+```sh
+python3 -m venv /tmp/jse-report-env
+/tmp/jse-report-env/bin/pip install -r tools/requirements-report.txt
+/tmp/jse-report-env/bin/python tools/build_report.py
+```
+
+Export the DOCX with LibreOffice and its Python UNO bindings (`python3-uno` on Debian/Ubuntu):
+
+```sh
+/usr/bin/python3 tools/export_report.py
+```
+
+The exporter updates the table of contents and page references and creates a tagged PDF. Both report files are committed so the reviewer does not need publishing software.
+
+After committing a verified tree, run `python3 tools/package_release.py`. It checks the source digest and report evidence and packages the exact commit into `release/JSE-Source.zip`, then creates `release/JSE-Submission.zip` with the report, runnable JAR, source archive, launchers and checksum manifest. The release directory is generated and stays outside Git.
+
+Course handouts, local specifications, internal work notes, caches and build output do not belong in the source archive. Retain source, tests, build configuration, original assets and the documentation needed to inspect or reproduce the submission.

@@ -23,6 +23,8 @@ Thumbs.db
 *.log
 *.tmp
 /.superpowers/
+/docs/superpowers/
+/docs/local/
 /.worktrees/
 /worktrees/
 

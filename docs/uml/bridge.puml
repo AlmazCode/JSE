@@ -1,0 +1,29 @@
+@startuml
+!include style.puml
+title Bridge: graphics and renderer styles
+abstract class Graphic {
+  # renderer: Renderer
+  + draw(bounds)
+  + setRenderer(renderer)
+}
+class SpriteGraphic
+class RectangleGraphic
+interface Renderer {
+  + drawSprite(id, bounds)
+  + drawRectangle(bounds, color)
+  + drawOutline(bounds, color)
+  + drawText(text, position, color)
+}
+class FilledRenderer
+class WireframeRenderer
+Graphic <|-- SpriteGraphic
+Graphic <|-- RectangleGraphic
+Graphic --> Renderer : delegates
+Renderer <|.. FilledRenderer
+Renderer <|.. WireframeRenderer
+note bottom of Renderer
+Implementation inheritance via FrameRenderer and
+AbstractFrameRenderer is omitted here.
+Both concrete renderers use Java2D.
+end note
+@enduml

@@ -7,3 +7,4 @@ mvnw.cmd text eol=crlf
 *.pdf binary
 *.jar binary
 *.zip binary
+*.docx binary

@@ -1,0 +1,34 @@
+@startuml
+!include style.puml
+title Decorator: optional drawing layers
+abstract class Graphic {
+  + draw(bounds)
+  + setRenderer(renderer)
+}
+abstract class GraphicDecorator {
+  # wrapped: Graphic
+  + draw(bounds)
+  + setRenderer(renderer)
+  # drawLayer(bounds)
+}
+class OutlineDecorator
+class HealthBarDecorator
+interface HealthView {
+  + currentHealth()
+  + maxHealth()
+}
+class GraphicLayers {
+  + {static} compose(base, health, outline, healthBar, settings)
+}
+Graphic <|-- GraphicDecorator
+GraphicDecorator o--> Graphic : wraps
+GraphicDecorator <|-- OutlineDecorator
+GraphicDecorator <|-- HealthBarDecorator
+HealthBarDecorator --> HealthView : reads live health
+GraphicLayers ..> OutlineDecorator
+GraphicLayers ..> HealthBarDecorator
+note bottom of GraphicLayers
+Always rebuild from the undecorated base.
+Renderer changes propagate through the chain.
+end note
+@enduml

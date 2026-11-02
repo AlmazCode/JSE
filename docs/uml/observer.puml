@@ -1,0 +1,34 @@
+@startuml
+!include style.puml
+title Observer: independent event consumers
+class EventBus {
+  + subscribe(type, listener): Subscription
+  + publish(event)
+  + close()
+}
+interface "EventListener<E>" as Listener {
+  + onEvent(event)
+}
+interface Subscription {
+  + close()
+}
+class HudObserver {
+  + score()
+  + health()
+  + result()
+}
+class EventLogObserver {
+  + lines()
+}
+EventBus o--> Listener : subscription snapshot
+EventBus ..> Subscription : returns handle
+HudObserver --> Subscription : owns 3
+EventLogObserver --> Subscription : owns 6
+HudObserver ..> Listener : typed callbacks
+EventLogObserver ..> Listener : typed callbacks
+note bottom of EventBus
+Delivery is synchronous on the simulation thread.
+Nested publications follow the current callback batch.
+Observers close their own subscription handles.
+end note
+@enduml

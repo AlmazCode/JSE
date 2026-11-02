@@ -1,0 +1,22 @@
+{
+  "source_sha256": "1f59f214a2024ba58ddba1d4ed978e8fdda6e0de6fc89144d10d5d49585fb271",
+  "tests": {
+    "tests": 96,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "classes": 26,
+    "java_runtimes": [
+      "17+35-2724"
+    ]
+  },
+  "desktop": {
+    "success": true,
+    "route_cycles": 20,
+    "native_robot_enter": false,
+    "java": "17",
+    "platform": "Linux",
+    "recorded_utc": "2026-11-02T19:03:10.875038392Z",
+    "jar_sha256": "128a6bbb1763f57ed05bf4e91efe6d358cec4ef3c56291c3a1f9b09206b9d881"
+  }
+}

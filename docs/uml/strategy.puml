@@ -1,0 +1,30 @@
+@startuml
+!include style.puml
+title Strategy: replaceable enemy decisions
+abstract class Enemy {
+  - behavior: BehaviorStrategy
+  + setBehavior(behavior)
+}
+interface BehaviorStrategy {
+  + desiredVelocity(enemy, world, dt): Vec2
+  + name(): String
+}
+class PatrolBehavior
+class ChaseBehavior
+class FleeBehavior
+class IdleBehavior
+class AiSystem {
+  + update(world, view, dt)
+  + changeBehavior(world, enemyId, next, tick)
+}
+Enemy o--> BehaviorStrategy
+BehaviorStrategy <|.. PatrolBehavior
+BehaviorStrategy <|.. ChaseBehavior
+BehaviorStrategy <|.. FleeBehavior
+BehaviorStrategy <|.. IdleBehavior
+AiSystem --> Enemy : chooses velocity
+note bottom of AiSystem
+All strategies read the same pre-motion WorldView.
+MotionSystem applies their velocities afterwards.
+end note
+@enduml

@@ -1,0 +1,15 @@
+@startuml
+!include style.puml
+title Factory Method: category-specific creation
+abstract class "EntitySpawner<T>" as Spawner {
+  # factory: GameObjectFamilyFactory
+  + spawn(world, request): T
+  # {abstract} createObject(request): T
+}
+class PlayerSpawner
+class EnemySpawner
+class PickupSpawner
+Spawner <|-- PlayerSpawner
+Spawner <|-- EnemySpawner
+Spawner <|-- PickupSpawner
+@enduml

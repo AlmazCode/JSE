@@ -1,0 +1,38 @@
+@startuml
+!include style.puml
+title Abstract Factory: coherent themed products
+interface GameObjectFamilyFactory {
+  + familyId(): ThemeId
+  + createPlayer(request): Player
+  + createEnemy(request): Enemy
+  + createPickup(request): Pickup
+}
+package Forest {
+  class ForestFactory
+  class ForestPlayer
+  class ForestEnemy
+  class ForestPickup
+  ForestFactory ..> ForestPlayer : creates
+  ForestFactory ..> ForestEnemy
+  ForestFactory ..> ForestPickup
+  ForestPlayer -[hidden]down-> ForestEnemy
+  ForestEnemy -[hidden]down-> ForestPickup
+}
+package Space {
+  class SpaceFactory
+  class SpacePlayer
+  class SpaceEnemy
+  class SpacePickup
+  SpaceFactory ..> SpacePlayer : creates
+  SpaceFactory ..> SpaceEnemy
+  SpaceFactory ..> SpacePickup
+  SpacePlayer -[hidden]down-> SpaceEnemy
+  SpaceEnemy -[hidden]down-> SpacePickup
+}
+GameObjectFamilyFactory <|.. ForestFactory
+GameObjectFamilyFactory <|.. SpaceFactory
+note bottom of GameObjectFamilyFactory
+Product inheritance from Player, Enemy and Pickup
+is omitted. Every product retains its family ID.
+end note
+@enduml

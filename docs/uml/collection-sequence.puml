@@ -1,31 +1,28 @@
 @startuml
+!include style.puml
 title Implemented pickup collection and synchronous Observer delivery
 participant ArenaRun as Run
-participant AiSystem as AI
-participant MotionSystem as Motion
-participant CollisionSystem as Collision
 participant ArenaRules as Rules
 participant World
 participant EventBus as Bus
 participant HudObserver as Hud
 participant EventLogObserver as Log
-Run -> AI : update(world, world.view(), dt)
-Run -> Motion : update(world, dt)
-Run -> Collision : findOverlaps(world.view())
-Collision --> Run : ordered collision pairs
+note over Run,Rules
+AI, motion and overlap detection have completed.
+end note
 Run -> Rules : applyCollisions(world, pairs, dt, tick)
 Rules -> World : enqueueRemove(pickupId, COLLECTED)
-World -> World : hide pickup immediately
+World -> World : mark unavailable
 Rules -> Rules : increase score once
 Rules -> Bus : publish(ItemCollected)
-Bus -> Hud : typed callback updates displayed score
-Bus -> Log : typed callback appends collection line
+Bus -> Hud : update score
+Bus -> Log : append collection
 Run -> World : commitChanges(tick)
 World -> World : remove pickup
 World -> Bus : publish(EntityRemoved)
 Bus -> Log : append removal line
 Run -> Rules : evaluateOutcome(world, tick)
-opt first terminal transition, loss before win
+opt first terminal transition
   Rules -> Bus : publish(GameFinished)
   Bus -> Hud : store result
   Bus -> Log : append outcome

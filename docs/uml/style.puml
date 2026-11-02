@@ -1,0 +1,9 @@
+skinparam monochrome true
+skinparam shadowing false
+skinparam roundcorner 0
+skinparam classAttributeIconSize 0
+skinparam defaultFontName DejaVu Sans
+skinparam defaultFontSize 12
+skinparam backgroundColor white
+skinparam ArrowColor #303030
+skinparam LineColor #303030
