@@ -108,7 +108,7 @@ public record LaunchSettings(EngineConfig engine, HostSettings host, KeyBindings
                     example != LaunchArguments.Example.SHOWCASE;
                 case TOGGLE_OUTLINE, TOGGLE_HEALTH_BAR, SWITCH_THEME ->
                     example != LaunchArguments.Example.PREVIEW;
-                case START_ARENA, SHOW_SHOWCASE, BACK_TO_TITLE -> example == LaunchArguments.Example.GAME;
+                case START_ARENA, SHOW_SHOWCASE, BACK_TO_TITLE, SELECT_ENEMY, SWITCH_BEHAVIOR, TOGGLE_LOG -> example == LaunchArguments.Example.GAME;
                 default -> false;
             };
             if (!active) continue;

@@ -12,7 +12,7 @@ Report section for the two patterns owned by Yasmina. Class names are the real o
 | Concrete strategies | `IdleBehavior`, `PatrolBehavior`, `ChaseBehavior`, `FleeBehavior` |
 | Context | `jse.world.Enemy` — holds the current strategy, `setBehavior(...)` replaces it |
 | Client | `jse.ai.AiSystem` — `update(...)` applies each enemy's strategy; `changeBehavior(...)` swaps it |
-| Composition | `jse.demo.ArenaRun` gives enemies Patrol, Chase, Flee in turn and calls `AiSystem` every update |
+| Composition | `jse.demo.ArenaRun` gives enemies Patrol, Chase, Flee in turn and calls `AiSystem` every active update |
 
 **How it works.** `AiSystem.update` takes one immutable `WorldView` snapshot and asks every enemy's own strategy for a velocity. A strategy only returns an intent; `MotionSystem` is the only class that changes positions. `changeBehavior` replaces a strategy, keeps id, position and family, and publishes `BehaviorChanged` only when something really changed. Patrol keeps its own state (current waypoint), so every enemy gets its own instance.
 

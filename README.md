@@ -1,6 +1,6 @@
 # Java Simple Engine
 
-JSE is a compact Java 17 runtime for 2D desktop applications. It provides fixed updates, scene lifecycle, keyboard actions and interchangeable Java2D rendering. It includes a configurable preview, an independent rendering showcase and a basic Arena integration with real game entities.
+JSE is a compact Java 17 runtime for 2D desktop applications. It provides fixed updates, scene lifecycle, keyboard actions and interchangeable Java2D rendering. It includes a configurable preview, an independent rendering showcase and an Arena integrating six design patterns with real game entities.
 
 ![Runtime preview](docs/screenshots/runtime-filled.png)
 
@@ -10,7 +10,7 @@ Install **JDK 17 or newer**. The Maven Wrapper selects Maven 3.9.9; the first bu
 
 ```sh
 ./mvnw clean verify
-java -jar target/jse-demo.jar
+java -jar target/jse-demo.jar --example game
 ```
 
 On Windows, replace `./mvnw` with `mvnw.cmd`. The packaged application runs without Maven, an IDE or a network connection. A desktop display is required for the window. Tests and help work without a display:
@@ -39,7 +39,7 @@ java -jar target/jse-demo.jar --example game
 
 The menu offers **Enter** for Arena and **H** for Showcase. **Escape** returns to the menu and closes from the menu. In Arena, use WASD/arrows to move, **P** to pause, **R** for a fresh run, **T** for the other theme, and **F1/F2/F3** for renderer/outline/health layers. Losing focus pauses until P is pressed. Visual choices survive reset, theme changes and menu/Showcase transitions.
 
-Collect eight pickups and avoid enemy contact. The health bar reads the real Player; contact deals one damage with a 0.75-second cooldown. Win/loss freezes movement while keeping visual and navigation controls. The current enemies use IdleBehavior; advanced AI and Observer HUD/log integration remain planned.
+Collect eight pickups and avoid enemy contact. The health bar reads the real Player; contact deals one damage with a 0.75-second cooldown. Win/loss freezes movement while keeping visual and navigation controls. Enemies start with Patrol, Chase and Flee. **Tab** selects an enemy, **B** cycles its strategy, and **L** detaches/recreates the event log while HUD updates continue. AI selection and log controls remain available during pause or after an outcome.
 
 ![Arena rendering integration](docs/screenshots/game-arena-filled.png)
 
@@ -67,7 +67,7 @@ Unknown keys, conflicting bindings, invalid colors and layouts that cannot fit t
 
 The runtime foundation, Bridge and Decorator are implemented, with two working renderer styles, two standalone examples and a game menu/integration. Six original transparent sprites are packaged; their editable source and attribution are included.
 
-The real entity model, both family factories, three spawners, World snapshots and basic Arena movement/rules are integrated. Advanced AI and the complete deferred event/Observer workflow remain planned. See [development status](docs/Development-Status.md) for completed work and the next handoff.
+All six design patterns are integrated into the real Arena: both family factories, three spawners, graphics/decorators, AI strategies and independent HUD/log observers. The EventBus uses synchronous delivery with deferred nested publications; a bounded next-tick protocol is future work. See [development status](docs/Development-Status.md) for completed work and the next handoff.
 
 ## Team
 
@@ -77,7 +77,7 @@ The real entity model, both family factories, three spawners, World snapshots an
 | Baktiyarova Aruzhan | Game object model, spawners, Forest/Space families, arena layout | Factory Method; Abstract Factory |
 | Roziyeva Yasmina | World, AI, collisions, events, rules, game scenes and observers | Strategy; Observer |
 
-Bridge, Decorator, Factory Method and Abstract Factory are implemented. Strategy has an interface and Idle implementation; Observer has the initial event-bus foundation. Their complete game acceptance remains planned; their intended structures and acceptance checks are documented individually.
+Bridge, Decorator, Factory Method, Abstract Factory, Strategy and Observer are implemented and observable in the unified application. The pattern diagrams describe the actual class roles and current synchronous event flow.
 
 ## Documentation
 
@@ -88,4 +88,19 @@ Bridge, Decorator, Factory Method and Abstract Factory are implemented. Strategy
 - [Verification](docs/Verification.md): commands, results and practical limits.
 - [Contributing](CONTRIBUTING.md) and [GitHub setup](docs/GitHub-Setup.md).
 
-[Runtime architecture](docs/uml/rendered/runtime-architecture.svg), runtime lifecycle and [rendering patterns](docs/uml/rendered/rendering-patterns.svg) and factory patterns describe implemented code. The target architecture and advanced behavior diagrams retain their planned labels.
+[Runtime architecture](docs/uml/rendered/runtime-architecture.svg), runtime lifecycle and [rendering patterns](docs/uml/rendered/rendering-patterns.svg) and factory patterns describe implemented code. The architecture, behavior and sequence diagrams describe the consolidated implementation.
+
+## Report and delivery
+
+The team report draft is available as [PDF](docs/report/JSE-Technical-Report.pdf) and [editable DOCX](docs/report/JSE-Technical-Report.docx). It includes the six patterns, actual source excerpts, UML, screenshots, verification results and limitations. [Emil defense notes](docs/report/Emil-Defense-Notes.txt) summarize the two rendering patterns. Review course-specific cover details before submission.
+
+Regenerate the report after a passing build:
+
+```sh
+python3 -m venv /tmp/jse-report-env
+/tmp/jse-report-env/bin/pip install -r tools/requirements-report.txt
+/tmp/jse-report-env/bin/python tools/build_report.py
+libreoffice --headless --convert-to pdf --outdir docs/report docs/report/JSE-Technical-Report.docx
+```
+
+`report-content.json` is the editable prose source. Code excerpts are extracted from Java, test totals come from Surefire XML, and screenshots come from the real application. `tools/DesktopVerification.java` provides display-enabled integration checks and captures current figures; it needs a desktop display. The independent runtime preview remains the default when `--example` is omitted.

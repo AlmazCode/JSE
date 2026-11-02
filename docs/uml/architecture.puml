@@ -1,5 +1,5 @@
 @startuml
-title JSE target architecture - planned game integration
+title JSE consolidated architecture - six operational patterns
 skinparam componentStyle rectangle
 component "demo\nTitleScene, ArenaScene, ShowcaseScene" as demo
 component "core\nJseEngine, SceneManager, Scene, EngineHost" as core
@@ -10,6 +10,7 @@ component "factory\nEntitySpawner, family factories" as factory
 component "ai\nBehaviorStrategy, AiSystem" as ai
 component "physics\nMotionSystem, CollisionSystem" as physics
 component "event\nEventBus, listener contracts" as events
+component "observer\nHudObserver, EventLogObserver" as observers
 component "render\nGraphic, Renderer, decorators" as render
 component "render/awt\nFilledRenderer, WireframeRenderer" as awtrender
 component "assets\nAssetManager" as assets
@@ -18,6 +19,8 @@ demo ..> world
 demo ..> factory
 demo ..> ai
 demo ..> physics
+demo ..> observers
+observers ..> events
 demo ..> events
 demo ..> render
 core ..> input
@@ -36,6 +39,7 @@ physics ..> world
 note bottom of core
 Arena rules and theme choice live in demo.
 Core has no dependency on EventBus.
-The diagram describes planned code, not completed implementation.
+ArenaRun connects factories, AI, rules, observers and graphics.
+Observer delivery is synchronous with deferred nested publications.
 end note
 @enduml

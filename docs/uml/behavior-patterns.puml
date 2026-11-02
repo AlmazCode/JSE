@@ -1,57 +1,75 @@
 @startuml
-title Planned: Roziyeva Yasmina - Strategy and Observer
+title Integrated Strategy and Observer - Roziyeva Yasmina's modules
 skinparam classAttributeIconSize 0
+class ArenaRun {
+  + advance(dt, input)
+  + cycleBehavior()
+  + setLogEnabled(enabled)
+  + close()
+}
 abstract class Enemy <<Strategy Context>> {
   - behavior: BehaviorStrategy
-  + setBehavior(behavior: BehaviorStrategy)
+  + setBehavior(behavior)
 }
 interface BehaviorStrategy <<Strategy>> {
-  + desiredVelocity(enemy: Enemy, world: WorldView, dt: double): Vec2
+  + calculateMovement(enemy, worldView, dt): Vec2
+  + desiredVelocity(enemy, worldView, dt): Vec2
+  + name(): String
 }
 class PatrolBehavior <<Concrete Strategy>>
 class ChaseBehavior <<Concrete Strategy>>
 class FleeBehavior <<Concrete Strategy>>
 class IdleBehavior
 class AiSystem {
-  + update(world: World, view: WorldView, dt: double)
+  + update(world, view, dt)
+  + changeBehavior(world, enemyId, next, tick): boolean
 }
-class ArenaRules <<Event Publisher>> {
-  + applyCollisions(world, pairs, dt, tick)
-}
-class World <<Event Publisher>> {
-  + commitChanges(tick: long)
-}
-interface GameEvent
+class World <<Lifecycle Publisher>>
+class ArenaRules <<Rule Publisher>>
 class EventBus <<Subject>> {
   + subscribe(type, listener): Subscription
-  + publish(event: GameEvent)
-  + dispatchPending()
+  + publish(event)
+  + drainDeferred()
+  + close()
 }
-interface "GameEventListener<E extends GameEvent>" as Listener <<Observer>> {
-  + onEvent(event: E)
+interface "EventListener<E>" as Listener {
+  + onEvent(event)
 }
 interface Subscription {
   + close()
 }
-class HudObserver <<Concrete Observer>>
-class EventLogObserver <<Concrete Observer>>
+class HudObserver <<Concrete Observer>> {
+  + score(): int
+  + health(): int
+  + result(): Optional
+  + close()
+}
+class EventLogObserver <<Concrete Observer>> {
+  + lines(): List<String>
+  + close()
+}
+ArenaRun *--> World
+ArenaRun *--> ArenaRules
+ArenaRun *--> AiSystem
+ArenaRun *--> HudObserver
+ArenaRun *--> EventLogObserver : optional
+ArenaRun *--> EventBus
 Enemy o--> BehaviorStrategy
-AiSystem ..> Enemy : delegates velocity to behavior
+AiSystem ..> Enemy : applies intent only
 BehaviorStrategy <|.. PatrolBehavior
 BehaviorStrategy <|.. ChaseBehavior
 BehaviorStrategy <|.. FleeBehavior
 BehaviorStrategy <|.. IdleBehavior
-ArenaRules --> EventBus : publish rule events
-World --> EventBus : publish committed lifecycle events
-EventBus --> GameEvent : queued immutable values
-EventBus o--> Listener : active subscriptions
-EventBus ..> Subscription : returns lifecycle handle
-Subscription ..> EventBus : remove listener
-Listener <|.. HudObserver
-Listener <|.. EventLogObserver
+AiSystem --> EventBus : BehaviorChanged
+World --> EventBus : lifecycle events
+ArenaRules --> EventBus : rule events
+EventBus o--> Listener : exact-class subscriptions
+EventBus ..> Subscription
+HudObserver --> Subscription : retains and closes 3 handles
+EventLogObserver --> Subscription : retains and closes 6 handles
 note bottom of EventBus
-Events are dispatched after commit.
-Events emitted by a listener wait until the next update.
-Scene exit closes subscriptions.
+publish normally delivers synchronously.
+Nested publications drain after the outer callback batch.
+Observers register typed lambdas through EventListener.
 end note
 @enduml

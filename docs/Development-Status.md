@@ -1,32 +1,23 @@
 # Development Status
 
-## Completed Emil rendering and platform work
+## Unified six-pattern application — 2026-11-02
 
-The runtime foundation includes fixed updates, scene lifecycle/cleanup, Swing hosting, keyboard input, validated startup configuration, preloaded assets and actual Filled/Wireframe renderers. Bridge and Decorator are implemented, with configurable outline/health layers, six original sprites and an independent Showcase.
+The three team contributions are integrated into a single application while retaining contributor history. Latest factory sources from Aruzhan8698bb0 and AI/Observer sources from Yasmina1b6bc46 are combined with Emil0436677. Category-size validation is retained when reconciling duplicate factory/product files.
 
-The remaining Emil integration is now delivered:
+All six patterns are observable through `java -jar target/jse-demo.jar --example game`:
 
-- EntityGraphics uses real GameObject.baseGraphic/current graphic and live Player health. F1/F2/F3 preserve IDs, positions, health and collision bounds. Removed entities and exited scenes release applied decorations.
-- `--example game` opens Title, with Enter for Arena and H for Showcase. Escape returns to Title; Escape at Title closes. Standalone Preview/Showcase retain their existing behavior.
-- GameScenes owns persistent VisualPreferences and theme; reset/theme/menu transitions create fresh runs with monotonic run IDs while keeping visual choices.
-- Both sprite families are preloaded before window startup. Arena uses all three real entity categories; game wireframes omit resource paths to keep crowded layouts legible.
-- Tests cover live health pixels, renderer replacement, repeated layer changes and 20 actual engine cycles through reset/theme/menu/Showcase. Each cycle closes three runs, for 60 verified cleanups.
+- Emil: Bridge switches actual Filled/Wireframe output with F1; Decorator composes outlines and real Player health with F2/F3. Visual choices survive reset, theme changes and menu/Showcase navigation.
+- Aruzhan: three creator subclasses implement Factory Method; Forest/Space factories create six related products through Abstract Factory. T recreates the selected family through the existing spawners and World lifecycle.
+- Yasmina: each enemy owns a Strategy, initialized Patrol/Chase/Flee and replaceable through Tab/B. AiSystem runs before motion. HudObserver and EventLogObserver follow six typed event categories; L removes/recreates only the log.
 
-## Shared dependencies integrated
+The Arena reserves a separate log region, draws observer-derived health/score, highlights the selected enemy and displays its current behavior. Rules own authoritative game state; observers are displays. Closed runs release observers, bus, World storage and applied graphic layers. Existing standalone Preview/Showcase behavior remains available.
 
-Aruzhan's `25e9cdb` and Yasmina's `9c2e3ae` are merged into the integration feature branch, preserving their authors. The missing shared dependencies were completed under their specified canonical names rather than duplicated in another model:
+## Verification and report
 
-- World, immutable EntityView/WorldView snapshots, queued additions/removals and stable identities.
-- ForestFactory/SpaceFactory, all six concrete products and the existing three spawners.
-- BehaviorStrategy's Enemy import is corrected; calculateMovement remains compatible and desiredVelocity is available. IdleBehavior is implemented.
-- MotionSystem, sorted collision pairs and basic ArenaRules supply real movement, collection and contact damage for the renderer integration.
+`./mvnw clean verify` passes 94 tests across 26 classes. Tests include real renderer/health pixels, six-product creation, real AI movement/swaps, independent observer updates, pause/outcome controls and 20 actual engine transition cycles. The display-only verifier additionally exercises 20 route cycles, Tab/B/L, both renderers and collision health while the log is detached. Its latest native Robot Enter attempt required the installed-action fallback; physical human input and Windows/macOS are not claimed as verified.
 
-The basic run has eight pickups, a target score of eight, one contact damage per 0.75 active seconds, pause/focus handling and win/loss freezing. Loss wins ties. Rules and physics are separate from rendering/navigation and can be extended by Yasmina.
+The English report draft has 17 pages, eight source listings and nine figures, with an editable DOCX and submission-format PDF under `docs/report`. It records actual class roles and test evidence, distinguishes responsibility from exclusive authorship and describes current event semantics. The report and source ZIP require team review before Moodle submission.
 
-## Verification and remaining team work
+## Remaining release work
 
-`./mvnw clean verify` passes **67 tests**. The packaged application was checked on Linux through an actual Swing window, installed input actions and 20 additional route cycles. The final check verified native Java Robot Enter delivery; other controls used installed Swing actions. Physical keyboard delivery remains unverified; Windows/macOS were not tested. See [verification](Verification.md).
-
-Emil's listed rendering/navigation integration is complete. Remaining project work belongs to the advanced game milestones: Patrol/Chase/Flee and AiSystem, enemy selection/behavior switching, full deferred typed event semantics and migration of legacy event contracts, HUD/log observers, diagnostic spawning and the final six-pattern release walkthrough. The current EventBus remains Yasmina's synchronous draft for compatibility; no full Observer acceptance is claimed. The current grid layout is an integration profile; the reference AI/layout profile remains a team follow-up.
-
-The next handoff is described in [the integration guide](Integration-Guide.md). Source, screenshots and UML distinguish the implemented integration from the remaining game release.
+The coding/integration portion of Emil's listed work is complete. Remaining human tasks are reviewing cover/course details, practising the explanation of Bridge/Decorator and the common demonstration, and submitting the PDF/source archive. Verify other desktop platforms if they are part of the submission environment. Diagnostic spawning and a bounded next-tick event protocol remain future improvements, not completed features.

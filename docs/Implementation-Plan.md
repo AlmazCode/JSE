@@ -105,9 +105,9 @@ Independent review found shutdown during scene exit and logging during cache loo
 | Owner | Next deliverable | Dependencies | Acceptance |
 | --- | --- | --- | --- |
 | Baktiyarova Aruzhan | Model and SpawnRequest delivered; maintain game products | Math, Graphic, HealthView; BehaviorStrategy contract with Yasmina | Typed model and validation tests |
-| Roziyeva Yasmina | World/snapshots delivered; complete queued EventBus and event migration | Object model and math | Queued changes, immutable snapshots, stable dispatch and unsubscribe tests |
+| Roziyeva Yasmina | World/snapshots and synchronous Observer integration delivered; optional queued protocol future | Object model and math | Queued changes, immutable snapshots, stable dispatch and unsubscribe tests |
 | Baktiyarova Aruzhan | Three spawners and both six-product families delivered | Model, World, SpriteGraphic | Three categories × two families; pending-to-active transition |
-| Roziyeva Yasmina | Patrol/Chase/Flee, motion/collision and ArenaRules | World and object model | Strategy swaps preserve IDs; single pickup collection; cooldown and loss priority |
+| Roziyeva Yasmina | Patrol/Chase/Flee, AiSystem and HUD/log observers integrated | World and object model | Strategy swaps preserve IDs; single pickup collection; cooldown and loss priority |
 | Sabirzhanov Emil | Real entity graphics, persistent display choices and Title/Arena/Showcase integration delivered | Integrated model, factories and World | Live Player health and renderer pixels; repeated toggles; 20 engine transition cycles |
 | All | Basic scene integration delivered; complete advanced AI/Observer release | Above modules | One packaged JAR, stable scene cleanup and shared rendering |
 
@@ -126,3 +126,7 @@ Emil's independent rendering milestone and subsequent real-entity/menu integrati
 ## Emil game integration result — 2026-11-01
 
 [Execution plan](superpowers/plans/2026-11-01-emil-game-integration.md): teammate branches integrated, canonical shared dependencies completed, EntityGraphics connected to Player/GameObject, persistent preferences and game navigation delivered. The suite passes 67 tests. See [verification](Verification.md) for packaged/display checks and remaining advanced AI/Observer scope.
+
+## Final consolidation and report — 2026-11-02
+
+The latest team branches are integrated with strict factory validation preserved. ArenaRun connects the three active strategies and independent HUD/log observers; Tab/B/L expose them in the actual application. The consolidated suite passes 94 tests across 26 classes. A 17-page English DOCX/PDF report draft includes all six patterns, real code listings, figures and verified limitations. See the [consolidation plan](superpowers/plans/2026-11-02-unified-project-report.md).

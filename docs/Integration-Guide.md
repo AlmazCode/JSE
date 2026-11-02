@@ -21,11 +21,11 @@ Agree BehaviorStrategy and entity mutation methods with Yasmina first. ID/active
 
 Maintain the integrated six-product matrix, GameObjectFamilyFactory, ForestFactory/SpaceFactory and three EntitySpawner subclasses. Keep final spawn's validation/registration flow separate from protected createObject. Use the implemented World.enqueueAdd and immutable snapshots instead of introducing a competing World implementation. Model and family construction tests can run earlier.
 
-## Yasmina remaining game systems
+## Yasmina integrated AI and observers
 
-The initial event bus, shared World/snapshots and basic physics/rules are integrated. Complete the deferred event pipeline and observer layer against those sources. Enforce exact-class dispatch, a batch snapshot, deferred publications, close semantics and deterministic IDs/queued changes. Inject capacity through settings.
+AiSystem and Patrol/Chase/Flee are now wired into ArenaRun before motion, and HUD/log observers are created before initial lifecycle events. Tab/B select and replace behavior; L toggles only the log. The synchronous event protocol is retained; a stronger bounded deferred contract remains optional follow-up. Enforce exact-class dispatch, a batch snapshot, deferred publications, close semantics and deterministic IDs/queued changes. Inject capacity through settings.
 
-Extend BehaviorStrategy/Idle with Patrol/Chase/Flee and AiSystem now that snapshots are available. MotionSystem and CollisionSystem are already implemented. ArenaScene owns World, EventBus, rules and observers and closes them in onExit. EngineServices stays game-independent.
+Maintain per-enemy Patrol state and use AiSystem.changeBehavior for a real replacement event. MotionSystem and CollisionSystem remain independent of AI choices. ArenaScene owns World, EventBus, rules and observers and closes them in onExit. EngineServices stays game-independent.
 
 ## Emil's completed rendering and scene integration
 
@@ -37,7 +37,7 @@ Both families now have original PNGs at `sprites/{forest,space}/{player,enemy,pi
 
 The real `jse.world` model is now integrated. EntityGraphics renders any current iterable of real GameObjects and composes Player health layers from its actual HealthView. It owns only applied visual layers, restores retired entities to their base graphic and closes on scene exit. VisualPreferences is shared through GameScenes, never through global/core state.
 
-TitleScene, ArenaScene and the menu-hosted Showcase are connected through `--example game`. ArenaRun owns the World/EventBus lifetime and delegates motion/collisions/consequences to separate systems/rules. Twenty engine cycles exercise reset, theme, menu and Showcase cleanup. The initial grid and Idle enemies provide a runnable integration; advanced AI/reference layout and observers remain follow-up work.
+TitleScene, ArenaScene and the menu-hosted Showcase are connected through `--example game`. ArenaRun owns the World/EventBus lifetime and delegates motion/collisions/consequences to separate systems/rules. Twenty engine cycles exercise reset, theme, menu and Showcase cleanup. The grid runs Patrol/Chase/Flee and event-driven HUD/log displays. Additional reference layouts and diagnostic spawning remain follow-up work.
 
 WorldView is now the immutable snapshot record defined by the shared API. Its old getPlayerPosition/isWithinBounds accessors remain compatibility adapters. BehaviorStrategy uses jse.world.Enemy, retains calculateMovement and offers desiredVelocity. Avoid reintroducing jse.factory entity sketches.
 

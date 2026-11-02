@@ -26,6 +26,7 @@ class ArenaIntegrationTest {
         scene.update(0.1,new InputState(Set.of(GameAction.MOVE_RIGHT,GameAction.MOVE_DOWN),Set.of()));
         assertEquals(22,player.position().subtract(initial).length(),1e-8);
         var moved=player.bounds();player.takeDamage(1);
+        scene.update(0.1,input(GameAction.PAUSE));
         for(int i=0;i<100;i++) scene.update(0.1,input(GameAction.SWITCH_RENDERER,GameAction.TOGGLE_OUTLINE,GameAction.TOGGLE_HEALTH_BAR));
         assertEquals(2,player.currentHealth());assertEquals(moved,player.bounds());assertEquals(1,player.id());
         scene.onFocusLost();
@@ -77,7 +78,8 @@ class ArenaIntegrationTest {
         var settings=LaunchSettings.load(null,LaunchArguments.Example.GAME);
         var run=new ArenaRun(1,ThemeId.FOREST,settings,new GameFixtures.CaptureRenderer());
         var objects=new ArrayList<GameObject>();run.world().forEachActive(objects::add);
-        var enemy=objects.stream().filter(Enemy.class::isInstance).findFirst().orElseThrow();
+        var enemy=objects.stream().filter(Enemy.class::isInstance).map(Enemy.class::cast).findFirst().orElseThrow();
+        enemy.setBehavior(new jse.ai.IdleBehavior());
         enemy.setPosition(run.player().position());
         run.advance(0.1,input());assertEquals(2,run.player().currentHealth());
         run.advance(0.1,input());assertEquals(2,run.player().currentHealth());

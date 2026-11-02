@@ -14,7 +14,8 @@ component "world\nWorld, GameObject, snapshots" as world
 component "factory/themes\nSpawners, Forest/Space products" as factory
 component "physics\nMotionSystem, CollisionSystem" as physics
 component "event\nSynchronous EventBus, events" as events
-component "ai\nBehaviorStrategy, Idle" as ai
+component "observer\nHudObserver, EventLogObserver" as observers
+component "ai\nBehaviorStrategy, Patrol/Chase/Flee, AiSystem" as ai
 demo ..> settings : typed configuration
 demo ..> core : compose and start
 demo ..> platform : desktop composition
@@ -23,6 +24,8 @@ demo ..> world
 demo ..> factory
 demo ..> physics
 demo ..> events
+demo ..> observers
+observers ..> events : typed subscriptions
 factory ..> world
 factory ..> render
 world ..> render
