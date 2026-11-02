@@ -38,9 +38,9 @@ def verify_inputs():
     with zipfile.ZipFile(report) as archive:
         body = ET.fromstring(archive.read("word/document.xml"))
         text = " ".join(body.itertext())
-    for expected in (f"Release {version}", f"{recorded['tests']['tests']} tests"):
+    for expected in ("Java Simple Engine", f"{recorded['tests']['tests']} tests"):
         if expected not in text:
-            raise ValueError(f"Report does not identify the current release: {expected}")
+            raise ValueError(f"Report does not contain the expected project evidence: {expected}")
     if "Draft for team review" in text:
         raise ValueError("The report is still marked as a draft.")
     pdf = ROOT / "docs/report/JSE-Technical-Report.pdf"

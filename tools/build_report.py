@@ -5,11 +5,10 @@ import argparse
 import json
 import re
 from datetime import datetime, timezone
-import xml.etree.ElementTree as ET
 from pathlib import Path
 
 from docx import Document
-from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_TAB_ALIGNMENT
+from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 from docx.shared import Cm, Pt, RGBColor
@@ -29,9 +28,7 @@ def substitutions():
     for key in ("tests", "failures", "errors", "skipped", "classes"):
         if current[key] != evidence["tests"][key]:
             raise ValueError("Current tests differ from docs/verification.json; verify again.")
-    version = ET.parse(ROOT / "pom.xml").getroot().find("{*}version").text
     return {
-        "VERSION": version,
         "TEST_COUNT": str(current["tests"]),
         "TEST_CLASSES": str(current["classes"]),
         "TEST_JAVA": ", ".join(evidence["tests"]["java_runtimes"]),
@@ -161,8 +158,7 @@ def configure(document):
     header.runs[0].font.name = HEADING_FONT
     header.runs[0].font.size = Pt(8)
     footer = section.footer.paragraphs[0]
-    footer.paragraph_format.tab_stops.add_tab_stop(Cm(16.6), WD_TAB_ALIGNMENT.RIGHT)
-    footer.add_run("JSE/TR-001  ·  Rev. 1.0\t")
+    footer.alignment = WD_ALIGN_PARAGRAPH.RIGHT
     field(footer, "PAGE")
     footer.add_run(" / ")
     field(footer, "NUMPAGES")

@@ -2,8 +2,6 @@
 
 Technical report · Software Design Patterns
 
-Release {VERSION} · 3 November 2026 · JSE/TR-001
-
 Sabirzhanov Emil
 Baktiyarova Aruzhan
 Roziyeva Yasmina
@@ -12,7 +10,7 @@ Roziyeva Yasmina
 
 Java Simple Engine is a Java desktop application built around a small collection game. A player moves through an arena, collects pickups and loses health on enemy contact. The same objects can be drawn with two renderer styles, decorated with optional outlines and health bars, and recreated as a Forest or Space family. Enemy movement can change during a run. A separate event log can be disconnected while the score and health display continues to update.
 
-The project uses these interactions to examine six design patterns in working code: Factory Method, Abstract Factory, Bridge, Decorator, Strategy and Observer. The report explains the boundaries between them, traces a pickup through the update cycle, and records the checks performed on release {VERSION}. The final suite contains {TEST_COUNT} tests in {TEST_CLASSES} classes, with no failures, errors or skipped tests. Desktop checks cover {ROUTE_CYCLES} navigation cycles on {PLATFORM} with Java {DESKTOP_JAVA}. The runtime needs only the JDK; the source build uses Maven Wrapper and JUnit for tests.
+The project uses these interactions to examine six design patterns in working code: Factory Method, Abstract Factory, Bridge, Decorator, Strategy and Observer. The report explains the boundaries between them, traces a pickup through the update cycle, and records the checks performed on the application. The final suite contains {TEST_COUNT} tests in {TEST_CLASSES} classes, with no failures, errors or skipped tests. Desktop checks cover {ROUTE_CYCLES} navigation cycles on {PLATFORM} with Java {DESKTOP_JAVA}. The runtime needs only the JDK; the source build uses Maven Wrapper and JUnit for tests.
 
 <!-- contents -->
 
@@ -167,7 +165,7 @@ The sequence shows why the event and world mutation contracts must be distinguis
 
 ### 7.1 Build and test evidence
 
-Release {VERSION} was built and tested on Linux using OpenJDK {TEST_JAVA}. Compilation targets Java 17. The command was ./mvnw --batch-mode --no-transfer-progress clean verify. It compiled the application, ran the suite, packaged the executable JAR and checked the Java formatting rules. The result was {TEST_COUNT} tests across {TEST_CLASSES} test classes, with zero failures, errors or skips. The recorded application source digest is stored in docs/verification.json.
+The application was built and tested on Linux using OpenJDK {TEST_JAVA}. Compilation targets Java 17. The command was ./mvnw --batch-mode --no-transfer-progress clean verify. It compiled the application, ran the suite, packaged the executable JAR and checked the Java formatting rules. The result was {TEST_COUNT} tests across {TEST_CLASSES} test classes, with zero failures, errors or skips. The recorded application source digest is stored in docs/verification.json.
 
 | Boundary | Representative tests | Behavior checked |
 | --- | --- | --- |
@@ -242,7 +240,7 @@ For a short demonstration, enter the arena, pause, switch F1/F2/F3 and show that
 
 [1] Software Design Patterns. Final Project Defense Requirements. Course handout supplied to the team.
 
-[2] Gamma, E., Helm, R., Johnson, R. and Vlissides, J. Design Patterns: Elements of Reusable Object-Oriented Software. Addison-Wesley, 1994. ISBN 9780201633610. [Publisher record](https://www.informit.com/store/design-patterns-elements-of-reusable-object-oriented-9780201633610).
+[2] Gamma, E., Helm, R., Johnson, R. and Vlissides, J. Design Patterns: Elements of Reusable Object-Oriented Software. Addison-Wesley. ISBN 9780201633610. [Publisher record](https://www.informit.com/store/design-patterns-elements-of-reusable-object-oriented-9780201633610).
 
 [3] Oracle. Java Platform, Standard Edition 17: javax.swing.Timer. [API reference](https://docs.oracle.com/en/java/javase/17/docs/api/java.desktop/javax/swing/Timer.html).
 
@@ -252,4 +250,4 @@ For a short demonstration, enter the arena, pause, switch F1/F2/F3 and show that
 
 [6] JUnit Team. Contributing: coding conventions and formatting. [Maintainer guidance](https://github.com/junit-team/junit-framework/blob/main/CONTRIBUTING.md).
 
-Web references accessed 2 November 2026. Source listings are extracted from the repository when the report is generated. UML files and original screenshot captures are included with the source.
+Source listings are extracted from the repository when the report is generated. UML files and original screenshot captures are included with the source.
