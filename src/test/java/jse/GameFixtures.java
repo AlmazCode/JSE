@@ -14,7 +14,6 @@ import jse.math.Vec2;
 import jse.render.Renderer;
 
 public final class GameFixtures {
-
     private GameFixtures() {
     }
 
@@ -30,13 +29,9 @@ public final class GameFixtures {
     }
 
     public static class CaptureRenderer implements Renderer {
-
         public final List<Rect> rectangles = new ArrayList<>();
-
         public final List<Rgba> colors = new ArrayList<>();
-
         public final List<SpriteId> sprites = new ArrayList<>();
-
         public final List<String> text = new ArrayList<>();
 
         public void clear() {
@@ -46,18 +41,22 @@ public final class GameFixtures {
             text.clear();
         }
 
+        @Override
         public void drawRectangle(Rect bounds, Rgba color) {
             rectangles.add(bounds);
             colors.add(color);
         }
 
+        @Override
         public void drawSprite(SpriteId id, Rect bounds) {
             sprites.add(id);
         }
 
+        @Override
         public void drawOutline(Rect bounds, Rgba color) {
         }
 
+        @Override
         public void drawText(String value, Vec2 position, Rgba color) {
             text.add(value);
         }

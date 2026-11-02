@@ -25,7 +25,6 @@ import jse.render.Renderer;
 import org.junit.jupiter.api.Test;
 
 class ShowcaseSceneTest {
-
     @Test
     void remappedControlsAreConsistentThroughoutTheHelp() throws Exception {
         var settings = LaunchSettings.load(null, LaunchArguments.Example.SHOWCASE);
@@ -126,9 +125,7 @@ class ShowcaseSceneTest {
     }
 
     private static class Control implements EngineControl {
-
         final List<RenderMode> modes = new ArrayList<>();
-
         boolean stopped;
 
         public void requestScene(Scene scene) {
@@ -145,13 +142,9 @@ class ShowcaseSceneTest {
     }
 
     private static class CaptureRenderer implements Renderer {
-
         final List<Rect> shapes = new ArrayList<>();
-
         final List<Rgba> colors = new ArrayList<>();
-
         final List<SpriteId> sprites = new ArrayList<>();
-
         final List<String> text = new ArrayList<>();
 
         void clear() {

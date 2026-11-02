@@ -3,7 +3,6 @@ package jse.input;
 import java.util.Set;
 
 public record InputState(Set<GameAction> held, Set<GameAction> pressed) {
-
     public InputState {
         held = Set.copyOf(held);
         pressed = Set.copyOf(pressed);

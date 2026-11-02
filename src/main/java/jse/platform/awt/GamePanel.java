@@ -14,7 +14,6 @@ import jse.render.Renderer;
 import jse.render.awt.FrameRenderer;
 
 public final class GamePanel extends JPanel {
-
     private final Supplier<FrameRenderer> renderer;
     private final Consumer<Renderer> paint;
     private final Consumer<RuntimeException> failed;

@@ -4,10 +4,11 @@ import java.nio.file.Path;
 import jse.core.Scene;
 
 public record LaunchArguments(boolean help, Path config, Example example) {
-
     public enum Example {
 
-        PREVIEW, SHOWCASE, GAME
+        PREVIEW,
+        SHOWCASE,
+        GAME
     }
 
     public static LaunchArguments parse(String[] args) {

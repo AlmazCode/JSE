@@ -12,7 +12,6 @@ import java.util.Set;
 import javax.imageio.ImageIO;
 
 public final class AssetManager {
-
     private final ClassLoader loader;
     private final BufferedImage placeholder;
     private final Map<SpriteId, BufferedImage> sprites = new HashMap<>();

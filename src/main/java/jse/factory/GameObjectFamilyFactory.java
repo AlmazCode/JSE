@@ -6,7 +6,6 @@ import jse.world.Player;
 import jse.world.ThemeId;
 
 public interface GameObjectFamilyFactory {
-
     ThemeId familyId();
 
     Player createPlayer(SpawnRequest request);

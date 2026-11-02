@@ -26,7 +26,6 @@ import jse.render.awt.RenderStyle;
 public record LaunchSettings(EngineConfig engine, HostSettings host, KeyBindings keys,
         RenderStyle render, MissingSpriteStyle placeholder, List<SpriteId> preload,
         PreviewSettings preview, ShowcaseSettings showcase, GameSettings game) {
-
     public LaunchSettings {
         Objects.requireNonNull(engine, "engine");
         Objects.requireNonNull(host, "host");
@@ -51,24 +50,9 @@ public record LaunchSettings(EngineConfig engine, HostSettings host, KeyBindings
             throws IOException {
         Objects.requireNonNull(example, "example");
         var values = new Properties();
-        try (var stream = LaunchSettings.class.getResourceAsStream("/jse.properties")) {
-            if (stream == null) {
-                throw new IOException("Bundled jse.properties is missing");
-            }
-            values.load(new InputStreamReader(stream, StandardCharsets.UTF_8));
-        }
-        try (var stream = LaunchSettings.class.getResourceAsStream("/showcase.properties")) {
-            if (stream == null) {
-                throw new IOException("Bundled showcase.properties is missing");
-            }
-            values.load(new InputStreamReader(stream, StandardCharsets.UTF_8));
-        }
-        try (var stream = LaunchSettings.class.getResourceAsStream("/game.properties")) {
-            if (stream == null) {
-                throw new IOException("Bundled game.properties is missing");
-            }
-            values.load(new InputStreamReader(stream, StandardCharsets.UTF_8));
-        }
+        loadResource(values, "jse.properties");
+        loadResource(values, "showcase.properties");
+        loadResource(values, "game.properties");
         if (overrides != null) {
             var extra = new Properties();
             try (var reader = Files.newBufferedReader(overrides, StandardCharsets.UTF_8)) {
@@ -81,6 +65,19 @@ public record LaunchSettings(EngineConfig engine, HostSettings host, KeyBindings
                 values.setProperty(key, extra.getProperty(key));
             }
         }
+        return from(values, example);
+    }
+
+    private static void loadResource(Properties values, String name) throws IOException {
+        try (var stream = LaunchSettings.class.getResourceAsStream("/" + name)) {
+            if (stream == null) {
+                throw new IOException("Bundled " + name + " is missing");
+            }
+            values.load(new InputStreamReader(stream, StandardCharsets.UTF_8));
+        }
+    }
+
+    private static LaunchSettings from(Properties values, LaunchArguments.Example example) {
         var reader = new SettingsReader(values);
         var engine = new EngineConfig(reader.integer("window.width"),
                 reader.integer("window.height"), reader.integer("engine.target_ups"),
@@ -116,19 +113,7 @@ public record LaunchSettings(EngineConfig engine, HostSettings host, KeyBindings
             }
             var action = GameAction
                     .valueOf(property.substring("input.".length()).toUpperCase(Locale.ROOT));
-            boolean active = switch (action) {
-                case SWITCH_RENDERER -> true;
-                case QUIT -> example != LaunchArguments.Example.GAME;
-                case MOVE_UP, MOVE_DOWN, MOVE_LEFT, MOVE_RIGHT, PAUSE, RESTART ->
-                    example != LaunchArguments.Example.SHOWCASE;
-                case TOGGLE_OUTLINE, TOGGLE_HEALTH_BAR, SWITCH_THEME ->
-                    example != LaunchArguments.Example.PREVIEW;
-                case START_ARENA, SHOW_SHOWCASE, BACK_TO_TITLE, SELECT_ENEMY, SWITCH_BEHAVIOR,
-                        TOGGLE_LOG ->
-                    example == LaunchArguments.Example.GAME;
-                default -> false;
-            };
-            if (!active) {
+            if (!isActive(action, example)) {
                 continue;
             }
             for (String name : tokens(values.getProperty(property), false)) {
@@ -145,6 +130,20 @@ public record LaunchSettings(EngineConfig engine, HostSettings host, KeyBindings
         return new KeyBindings(keys);
     }
 
+    private static boolean isActive(GameAction action, LaunchArguments.Example example) {
+        return switch (action) {
+            case SWITCH_RENDERER -> true;
+            case QUIT -> example != LaunchArguments.Example.GAME;
+            case MOVE_UP, MOVE_DOWN, MOVE_LEFT, MOVE_RIGHT, PAUSE, RESTART ->
+                example != LaunchArguments.Example.SHOWCASE;
+            case TOGGLE_OUTLINE, TOGGLE_HEALTH_BAR, SWITCH_THEME ->
+                example != LaunchArguments.Example.PREVIEW;
+            case START_ARENA, SHOW_SHOWCASE, BACK_TO_TITLE, SELECT_ENEMY, SWITCH_BEHAVIOR,
+                    TOGGLE_LOG ->
+                example == LaunchArguments.Example.GAME;
+        };
+    }
+
     private static List<String> tokens(String value, boolean allowEmpty) {
         if (allowEmpty && value.isBlank()) {
             return List.of();
@@ -157,7 +156,6 @@ public record LaunchSettings(EngineConfig engine, HostSettings host, KeyBindings
     }
 
     record SettingsReader(Properties values) {
-
         String text(String key) {
             var value = values.getProperty(key).trim();
             if (value.isEmpty()) {

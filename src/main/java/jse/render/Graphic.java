@@ -4,7 +4,6 @@ import java.util.Objects;
 import jse.math.Rect;
 
 public abstract class Graphic {
-
     protected Renderer renderer;
 
     protected Graphic(Renderer renderer) {

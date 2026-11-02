@@ -3,7 +3,6 @@ package jse.assets;
 import java.util.Objects;
 
 public record SpriteId(String path) {
-
     public SpriteId {
         Objects.requireNonNull(path, "path");
         if (path.isBlank() || path.startsWith("/") || path.contains("\\")

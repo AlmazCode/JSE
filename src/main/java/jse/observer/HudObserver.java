@@ -13,10 +13,9 @@ import jse.event.Subscription;
 import jse.world.Player;
 
 /**
- * Concrete observer holding the numbers a HUD shows, built only from events.
+ * Starts with player health, then tracks score, health and outcome through events.
  */
 public final class HudObserver implements AutoCloseable {
-
     private final List<Subscription> subscriptions = new ArrayList<>();
     private int score;
     private int health;

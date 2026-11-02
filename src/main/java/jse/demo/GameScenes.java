@@ -10,7 +10,6 @@ import jse.world.ThemeId;
  * Application composition; neither core nor the desktop host knows about game scenes.
  */
 public final class GameScenes {
-
     private final LaunchSettings settings;
     private final VisualPreferences preferences;
     private ThemeId theme = ThemeId.FOREST;

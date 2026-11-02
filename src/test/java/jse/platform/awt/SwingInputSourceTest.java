@@ -15,7 +15,6 @@ import jse.input.GameAction;
 import org.junit.jupiter.api.Test;
 
 class SwingInputSourceTest {
-
     @Test
     void physicalAliasesAndKeyRepeatDoNotDuplicateLogicalPresses() throws Exception {
         SwingUtilities.invokeAndWait(() -> {

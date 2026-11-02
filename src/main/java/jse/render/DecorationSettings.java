@@ -5,7 +5,6 @@ import jse.math.Rgba;
 
 public record DecorationSettings(double outlineWidth, Rgba outlineColor, double barOffset,
         double barHeight, Rgba barFill, Rgba barBackground) {
-
     public DecorationSettings {
         Objects.requireNonNull(outlineColor, "outlineColor");
         Objects.requireNonNull(barFill, "barFill");

@@ -6,7 +6,6 @@ import jse.factory.SpawnRequest;
 import jse.render.Graphic;
 
 public abstract class Pickup extends GameObject {
-
     private final int value;
 
     protected Pickup(ThemeId familyId, SpawnRequest request, Graphic graphic,

@@ -24,7 +24,6 @@ import jse.world.ThemeId;
 import org.junit.jupiter.api.Test;
 
 class ArenaBehaviorsTest {
-
     private ArenaRun run() throws Exception {
         return new ArenaRun(1, ThemeId.FOREST,
                 LaunchSettings.load(null, LaunchArguments.Example.GAME),

@@ -21,7 +21,6 @@ import jse.render.SpriteGraphic;
 import jse.render.VisualPreferences;
 
 public final class ShowcaseScene implements Scene {
-
     private final ShowcaseSettings settings;
     private final KeyBindings keys;
     private final VisualPreferences preferences;
@@ -45,11 +44,12 @@ public final class ShowcaseScene implements Scene {
         this.preferences = Objects.requireNonNull(preferences, "preferences");
         this.menu = menu;
         health = new HealthView() {
-
+            @Override
             public int currentHealth() {
                 return settings.currentHealth();
             }
 
+            @Override
             public int maxHealth() {
                 return settings.maxHealth();
             }
@@ -168,13 +168,9 @@ public final class ShowcaseScene implements Scene {
     }
 
     private static final class Sample {
-
         final String label;
-
         final Graphic base;
-
         final HealthView health;
-
         Graphic graphic;
 
         Sample(String label, Graphic base, HealthView health) {

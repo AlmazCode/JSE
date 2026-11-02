@@ -8,9 +8,8 @@ import jse.world.WorldView;
  * Moves straight towards the player; stands still without a player or on top of it.
  */
 public final class ChaseBehavior implements BehaviorStrategy {
-
     @Override
-    public Vec2 calculateMovement(Enemy enemy, WorldView world, double dt) {
+    public Vec2 desiredVelocity(Enemy enemy, WorldView world, double dt) {
         Behaviors.require(enemy, world, dt);
         if (world.playerPosition().isEmpty()) {
             return Vec2.ZERO;

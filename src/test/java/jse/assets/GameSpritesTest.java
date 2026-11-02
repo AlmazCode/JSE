@@ -10,7 +10,6 @@ import jse.demo.LaunchSettings;
 import org.junit.jupiter.api.Test;
 
 class GameSpritesTest {
-
     @Test
     void allSixSpritesDecodeAsDistinctVisibleTransparentArtwork() throws Exception {
         var settings = LaunchSettings.load(null);

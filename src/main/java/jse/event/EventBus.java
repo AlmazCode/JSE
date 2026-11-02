@@ -1,34 +1,30 @@
 package jse.event;
 
 import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Observer;
 import java.util.Queue;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
- * Observer pattern implementation: Event bus supporting exact-class dispatch, deferred publication
- * during event dispatching, and deterministic subscription cleanup.
+ * Delivers exact event types synchronously on the simulation thread. Publications made by a
+ * listener are queued until the current event has reached its subscription snapshot. This bus is
+ * not thread-safe.
  */
 public final class EventBus implements AutoCloseable {
-
-    private final Map<Class<? extends GameEvent>, List<EventListener<?>>> listeners = new ConcurrentHashMap<>();
+    private final Map<Class<? extends GameEvent>, List<EventListener<?>>> listeners = new HashMap<>();
     private final Queue<GameEvent> deferredQueue = new ArrayDeque<>();
-    private boolean isDispatching = false;
-    private boolean closed = false;
+    private boolean dispatching;
+    private boolean closed;
 
     /**
      * Subscribes a listener to an exact event class.
      *
-     * @param eventClass
-     *            the exact type of GameEvent
-     * @param listener
-     *            consumer of the event
-     * @param <E>
-     *            event type
+     * @param eventClass the exact type of GameEvent
+     * @param listener   consumer of the event
+     * @param <E>        event type
      * @return Subscription handle for unregistering
      */
     public <E extends GameEvent> Subscription subscribe(Class<E> eventClass,
@@ -38,8 +34,7 @@ public final class EventBus implements AutoCloseable {
         if (closed) {
             throw new IllegalStateException("EventBus is closed");
         }
-        List<EventListener<?>> list = listeners.computeIfAbsent(eventClass,
-                k -> new CopyOnWriteArrayList<>());
+        List<EventListener<?>> list = listeners.computeIfAbsent(eventClass, k -> new ArrayList<>());
         list.add(listener);
         return () -> list.remove(listener);
     }
@@ -52,7 +47,7 @@ public final class EventBus implements AutoCloseable {
         if (closed) {
             return;
         }
-        if (isDispatching) {
+        if (dispatching) {
             deferredQueue.offer(event);
             return;
         }
@@ -64,10 +59,10 @@ public final class EventBus implements AutoCloseable {
      * Explicitly dispatches all queued deferred events.
      */
     public void drainDeferred() {
-        if (closed || isDispatching) {
+        if (closed || dispatching) {
             return;
         }
-        isDispatching = true;
+        dispatching = true;
         try {
             while (!deferredQueue.isEmpty()) {
                 GameEvent event = deferredQueue.poll();
@@ -76,17 +71,16 @@ public final class EventBus implements AutoCloseable {
                 }
             }
         } finally {
-            isDispatching = false;
+            dispatching = false;
         }
     }
 
-    @SuppressWarnings("unchecked")
     private void dispatchDirect(GameEvent event) {
-        isDispatching = true;
+        dispatching = true;
         try {
             dispatchToListeners(event);
         } finally {
-            isDispatching = false;
+            dispatching = false;
         }
     }
 
@@ -96,7 +90,7 @@ public final class EventBus implements AutoCloseable {
         if (targets == null || targets.isEmpty()) {
             return;
         }
-        // Snapshot iteration to prevent concurrent modification and ensure deterministic execution
+        // Subscription changes take effect on the next event, not halfway through this one.
         for (EventListener<?> listener : targets.toArray(new EventListener<?>[0])) {
             try {
                 ((EventListener<GameEvent>) listener).onEvent(event);

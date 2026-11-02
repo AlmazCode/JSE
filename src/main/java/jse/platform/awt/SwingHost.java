@@ -20,7 +20,6 @@ import jse.render.Renderer;
 import jse.render.awt.FrameRenderer;
 
 public final class SwingHost implements EngineHost {
-
     private final HostSettings settings;
     private final SwingInputSource input;
     private final Map<RenderMode, FrameRenderer> renderers;
@@ -57,7 +56,6 @@ public final class SwingHost implements EngineHost {
                 failed);
         frame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
         frame.addWindowListener(new WindowAdapter() {
-
             @Override
             public void windowClosing(WindowEvent event) {
                 closeRequested.run();

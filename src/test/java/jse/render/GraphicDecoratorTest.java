@@ -20,7 +20,6 @@ import jse.render.awt.WireframeRenderer;
 import org.junit.jupiter.api.Test;
 
 class GraphicDecoratorTest {
-
     private static final Rgba WHITE = Rgba.parse("#FFFFFF");
     private static final Rgba RED = Rgba.parse("#FF0000");
     private static final Rgba GREEN = Rgba.parse("#00FF00");
@@ -134,9 +133,7 @@ class GraphicDecoratorTest {
     }
 
     private static class MutableHealth implements HealthView {
-
         int current;
-
         int max;
 
         MutableHealth(int current, int max) {
@@ -154,9 +151,7 @@ class GraphicDecoratorTest {
     }
 
     private static class RecordingRenderer implements Renderer {
-
         final List<Rect> rectangles = new ArrayList<>();
-
         final List<Rgba> colors = new ArrayList<>();
 
         void clear() {

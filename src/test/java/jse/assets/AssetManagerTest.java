@@ -15,14 +15,12 @@ import jse.math.Rgba;
 import org.junit.jupiter.api.Test;
 
 class AssetManagerTest {
-
     @Test
     void cacheLookupDoesNotEmitDiagnosticsDuringDrawing() {
         var logger = java.util.logging.Logger.getLogger(AssetManager.class.getName());
         boolean parents = logger.getUseParentHandlers();
         var records = new java.util.ArrayList<java.util.logging.LogRecord>();
         var handler = new java.util.logging.Handler() {
-
             public void publish(java.util.logging.LogRecord record) {
                 records.add(record);
             }
@@ -59,7 +57,6 @@ class AssetManagerTest {
         ImageIO.write(image, "png", bytes);
         int[] reads = {0};
         var loader = new ClassLoader(null) {
-
             @Override
             public InputStream getResourceAsStream(String name) {
                 reads[0]++;

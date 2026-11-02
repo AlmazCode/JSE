@@ -12,7 +12,6 @@ import jse.render.Renderer;
 import jse.world.GameObject;
 
 public final class ArenaScene implements Scene {
-
     private final GameScenes scenes;
     private final EntityGraphics graphics;
     private EngineServices services;
@@ -39,22 +38,35 @@ public final class ArenaScene implements Scene {
         if (!Double.isFinite(dt) || dt <= 0) {
             throw new IllegalArgumentException("Scene delta must be finite and positive");
         }
+        if (handleNavigation(input)) {
+            return;
+        }
+        updateVisuals(input);
+        updateRunControls(input);
+        run.advance(dt, input);
+    }
+
+    private boolean handleNavigation(InputState input) {
         if (input.isPressed(GameAction.BACK_TO_TITLE)) {
             services.control().requestScene(scenes.title());
-            return;
+            return true;
         }
         if (input.isPressed(GameAction.QUIT)) {
             services.control().stop();
-            return;
+            return true;
         }
         if (input.isPressed(GameAction.SWITCH_THEME)) {
             services.control().requestScene(scenes.alternateTheme());
-            return;
+            return true;
         }
         if (input.isPressed(GameAction.RESTART)) {
             services.control().requestScene(scenes.arena());
-            return;
+            return true;
         }
+        return false;
+    }
+
+    private void updateVisuals(InputState input) {
         var preferences = scenes.preferences();
         if (input.isPressed(GameAction.SWITCH_RENDERER)) {
             preferences.toggleRenderer();
@@ -66,6 +78,9 @@ public final class ArenaScene implements Scene {
         if (input.isPressed(GameAction.TOGGLE_HEALTH_BAR)) {
             preferences.toggleHealthBar();
         }
+    }
+
+    private void updateRunControls(InputState input) {
         if (input.isPressed(GameAction.SELECT_ENEMY)) {
             run.selectNextEnemy();
         }
@@ -79,18 +94,26 @@ public final class ArenaScene implements Scene {
         if (input.isPressed(GameAction.PAUSE)) {
             run.togglePause();
         }
-        run.advance(dt, input);
     }
 
     @Override
     public void render(Renderer renderer) {
+        renderWorld(renderer);
+        renderSelection(renderer);
+        renderHud(renderer);
+        renderLog(renderer);
+    }
+
+    private void renderWorld(Renderer renderer) {
         var settings = scenes.settings();
-        var keys = settings.keys();
-        var preferences = scenes.preferences();
         var objects = new ArrayList<GameObject>();
         run.world().forEachActive(objects::add);
-        graphics.render(objects, renderer, preferences);
+        graphics.render(objects, renderer, scenes.preferences());
         renderer.drawOutline(run.world().arena(), settings.showcase().mutedColor());
+    }
+
+    private void renderSelection(Renderer renderer) {
+        var settings = scenes.settings();
         run.selectedEnemy().ifPresent(enemy -> {
             var bounds = enemy.bounds();
             double gap = settings.showcase().decorations().outlineWidth() + 2;
@@ -98,14 +121,17 @@ public final class ArenaScene implements Scene {
                     bounds.width() + gap * 2, bounds.height() + gap * 2),
                     settings.showcase().textColor());
         });
+    }
+
+    private void renderHud(Renderer renderer) {
+        var settings = scenes.settings();
+        var keys = settings.keys();
+        var preferences = scenes.preferences();
         double x = settings.game().padding();
         double line = settings.game().lineHeight();
-        String state = run.rules().status() == ArenaRules.Status.RUNNING
-                ? (run.paused() ? "Paused" : "Running")
-                : run.rules().status().name();
         String[] text = {
                 "JSE / Arena / " + run.world().familyId() + " / "
-                        + preferences.mode().name().toLowerCase(Locale.ROOT) + " / " + state,
+                        + preferences.mode().name().toLowerCase(Locale.ROOT) + " / " + stateLabel(),
                 "Health " + run.hud().health() + " / " + run.player().maxHealth() + "  |  Score "
                         + run.hud().score() + " / " + settings.game().rules().targetScore()
                         + "  |  Run " + run.world().runId(),
@@ -119,6 +145,20 @@ public final class ArenaScene implements Scene {
             renderer.drawText(text[i], new Vec2(x, line * (i + 1)),
                     settings.showcase().textColor());
         }
+    }
+
+    private String stateLabel() {
+        if (run.rules().status() != ArenaRules.Status.RUNNING) {
+            return run.rules().status().name();
+        }
+        return run.paused() ? "Paused" : "Running";
+    }
+
+    private void renderLog(Renderer renderer) {
+        var settings = scenes.settings();
+        var keys = settings.keys();
+        double x = settings.game().padding();
+        double line = settings.game().lineHeight();
         double bottom = settings.engine().height() - settings.game().padding();
         renderer.drawText(
                 "Event log " + (scenes.logEnabled()

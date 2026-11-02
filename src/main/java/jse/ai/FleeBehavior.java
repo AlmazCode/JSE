@@ -8,7 +8,6 @@ import jse.world.WorldView;
  * Runs away from the player while it is within the radius; stands still outside it.
  */
 public final class FleeBehavior implements BehaviorStrategy {
-
     public static final double DEFAULT_RADIUS = 180;
     private final double radius;
 
@@ -28,7 +27,7 @@ public final class FleeBehavior implements BehaviorStrategy {
     }
 
     @Override
-    public Vec2 calculateMovement(Enemy enemy, WorldView world, double dt) {
+    public Vec2 desiredVelocity(Enemy enemy, WorldView world, double dt) {
         Behaviors.require(enemy, world, dt);
         if (world.playerPosition().isEmpty()) {
             return Vec2.ZERO;

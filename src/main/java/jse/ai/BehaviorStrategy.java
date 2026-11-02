@@ -4,32 +4,16 @@ import jse.math.Vec2;
 import jse.world.Enemy;
 import jse.world.WorldView;
 
-/**
- * Strategy pattern interface for controlling entity AI decision making.
- */
+/** Chooses an enemy's velocity from the same pre-motion world snapshot. */
 @FunctionalInterface
 public interface BehaviorStrategy {
-
     /**
-     * Calculates the desired movement or directional velocity vector for the enemy.
-     *
-     * @param enemy
-     *            the enemy entity executing this strategy
-     * @param world
-     *            read-only snapshot view of the world to query other entities
-     * @param dt
-     *            delta time for current fixed update step
-     * @return directional velocity vector (Vec2)
+     * Returns velocity in world units per second. The motion system applies it after all strategies
+     * have run; this method must not move the enemy itself.
      */
-    Vec2 calculateMovement(Enemy enemy, WorldView world, double dt);
+    Vec2 desiredVelocity(Enemy enemy, WorldView world, double dt);
 
-    default Vec2 desiredVelocity(Enemy enemy, WorldView world, double dt) {
-        return calculateMovement(enemy, world, dt);
-    }
-
-    /**
-     * Short human-readable name used by events and diagnostics.
-     */
+    /** Name included in the HUD and behavior-change events. */
     default String name() {
         return getClass().getSimpleName().replace("Behavior", "");
     }

@@ -18,7 +18,6 @@ public record ShowcaseSettings(DecorationSettings decorations, List<SpriteId> fo
         List<SpriteId> spaceSprites, double sampleSize, double padding, double headerHeight,
         double lineHeight, int currentHealth, int maxHealth, Rgba objectColor, Rgba textColor,
         Rgba mutedColor) {
-
     public ShowcaseSettings {
         Objects.requireNonNull(decorations, "decorations");
         forestSprites = List.copyOf(forestSprites);

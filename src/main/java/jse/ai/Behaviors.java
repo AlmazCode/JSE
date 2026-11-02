@@ -8,7 +8,6 @@ import jse.world.WorldView;
  * Argument checks shared by the concrete strategies.
  */
 final class Behaviors {
-
     private Behaviors() {
     }
 

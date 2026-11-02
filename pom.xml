@@ -6,7 +6,7 @@
 
     <groupId>dev.jse</groupId>
     <artifactId>jse-demo</artifactId>
-    <version>0.1.0</version>
+    <version>1.0.0</version>
     <packaging>jar</packaging>
     <name>Java Simple Engine</name>
     <description>A compact 2D runtime and desktop examples.</description>
@@ -35,6 +35,9 @@
                 <artifactId>spotless-maven-plugin</artifactId>
                 <version>3.10.4</version>
                 <configuration>
+                    <upToDateChecking>
+                        <enabled>false</enabled>
+                    </upToDateChecking>
                     <java>
                         <includes>
                             <include>src/main/java/**/*.java</include>
@@ -72,24 +75,16 @@
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-shade-plugin</artifactId>
-                <version>3.5.3</version>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>shade</goal>
-                        </goals>
-                        <configuration>
-                            <createDependencyReducedPom>false</createDependencyReducedPom>
-                            <transformers>
-                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>jse.demo.DemoApplication</mainClass>
-                                </transformer>
-                            </transformers>
-                        </configuration>
-                    </execution>
-                </executions>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.4.1</version>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <mainClass>jse.demo.DemoApplication</mainClass>
+                            <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+                        </manifest>
+                    </archive>
+                </configuration>
             </plugin>
         </plugins>
     </build>

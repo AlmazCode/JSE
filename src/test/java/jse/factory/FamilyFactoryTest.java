@@ -15,7 +15,6 @@ import jse.world.World;
 import org.junit.jupiter.api.Test;
 
 class FamilyFactoryTest {
-
     @Test
     void bothFamiliesCreateAllCategoriesWithInjectedSettingsAndSpriteIds() {
         var renderer = new GameFixtures.CaptureRenderer();

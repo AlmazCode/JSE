@@ -26,7 +26,6 @@ import jse.render.Renderer;
 import org.junit.jupiter.api.Test;
 
 class RuntimeTest {
-
     private final EngineConfig config = new EngineConfig(960, 540, 60, 5, 0.25, 16);
 
     @Test
@@ -68,7 +67,6 @@ class RuntimeTest {
         var discarded = new RecordingScene();
         var next = new RecordingScene();
         var scene = new RecordingScene() {
-
             @Override
             public void update(double dt, InputState state) {
                 super.update(dt, state);
@@ -95,7 +93,6 @@ class RuntimeTest {
     void partialEntryFailureExitsOnceAndLeavesClosableErrorState() {
         var host = new Host();
         var scene = new RecordingScene() {
-
             @Override
             public void onEnter(EngineServices services) {
                 super.onEnter(services);
@@ -118,7 +115,6 @@ class RuntimeTest {
         for (boolean fail : new boolean[]{false, true}) {
             var host = new Host();
             var scene = new RecordingScene() {
-
                 @Override
                 public void update(double dt, InputState state) {
                     super.update(dt, state);
@@ -147,7 +143,6 @@ class RuntimeTest {
     void stopClosesHostEvenWhenSceneExitThrows() {
         var host = new Host();
         var scene = new RecordingScene() {
-
             @Override
             public void onExit() {
                 super.onExit();
@@ -167,7 +162,6 @@ class RuntimeTest {
         var host = new Host();
         var next = new RecordingScene();
         var scene = new RecordingScene() {
-
             @Override
             public void onExit() {
                 super.onExit();
@@ -221,7 +215,6 @@ class RuntimeTest {
             var failure = new IllegalStateException("shared failure");
             var host = new Host();
             var scene = new RecordingScene() {
-
                 @Override
                 public void onEnter(EngineServices services) {
                     super.onEnter(services);
@@ -273,9 +266,7 @@ class RuntimeTest {
     }
 
     static class Keys implements InputSource {
-
         boolean consumed;
-
         int clears;
 
         public InputState snapshotAndConsumePressed() {
@@ -292,13 +283,9 @@ class RuntimeTest {
     }
 
     static class RecordingScene implements Scene {
-
         int enters;
-
         int exits;
-
         EngineServices services;
-
         List<InputState> inputs = new ArrayList<>();
 
         public void onEnter(EngineServices services) {
@@ -323,15 +310,10 @@ class RuntimeTest {
     }
 
     static class Host implements EngineHost {
-
         int closed;
-
         Throwable error;
-
         Consumer<RuntimeException> failed;
-
         Renderer renderer = new Renderer() {
-
             public void drawSprite(SpriteId id, Rect bounds) {
             }
 

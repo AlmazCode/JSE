@@ -21,7 +21,6 @@ import jse.math.Vec2;
 import org.junit.jupiter.api.Test;
 
 class WorldTest {
-
     private final GameObjectFamilyFactory factory = new ForestFactory(
             new GameFixtures.CaptureRenderer(), GameFixtures.entities(),
             GameFixtures.sprites("forest"));

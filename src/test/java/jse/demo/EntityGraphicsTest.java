@@ -26,7 +26,6 @@ import jse.world.World;
 import org.junit.jupiter.api.Test;
 
 class EntityGraphicsTest {
-
     @Test
     void livePlayerHealthAndRendererReplacementChangePixelsWithoutChangingTheModel()
             throws Exception {

@@ -26,7 +26,6 @@ import jse.render.Renderer;
 import org.junit.jupiter.api.Test;
 
 class GameSceneLifecycleTest {
-
     @Test
     void twentyActualEngineCyclesCloseRunsAndKeepPreferencesAcrossEveryRoute() throws Exception {
         var settings = LaunchSettings.load(null, LaunchArguments.Example.GAME);
@@ -115,17 +114,14 @@ class GameSceneLifecycleTest {
     }
 
     private static class Tracker {
-
         Scene current;
 
         Scene wrap(Scene scene) {
             return new Scene() {
-
                 public void onEnter(EngineServices services) {
                     current = scene;
                     scene.onEnter(new EngineServices(services.config(), services.initialRenderer(),
                             new EngineControl() {
-
                                 public void requestScene(Scene next) {
                                     services.control().requestScene(wrap(next));
                                 }
@@ -160,9 +156,7 @@ class GameSceneLifecycleTest {
     }
 
     private static class Keys implements InputSource {
-
         Set<GameAction> pressed = Set.of();
-
         int clears;
 
         public InputState snapshotAndConsumePressed() {
@@ -178,13 +172,9 @@ class GameSceneLifecycleTest {
     }
 
     private static class Host implements EngineHost {
-
         final Renderer renderer = new GameFixtures.CaptureRenderer();
-
         RenderMode mode = RenderMode.FILLED;
-
         Throwable failure;
-
         int closes;
 
         public void open(EngineConfig config, LongConsumer pump, Consumer<Renderer> paint,

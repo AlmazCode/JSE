@@ -6,7 +6,6 @@ import jse.math.Vec2;
 
 public record EntityView(long id, ObjectKind category, ThemeId familyId, Vec2 position,
         Rect bounds) {
-
     public EntityView {
         if (id <= 0) {
             throw new IllegalArgumentException("Entity ID must be positive");

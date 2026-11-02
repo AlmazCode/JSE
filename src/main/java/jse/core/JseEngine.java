@@ -6,10 +6,12 @@ import jse.render.RenderMode;
 import jse.render.Renderer;
 
 public final class JseEngine implements EngineControl, AutoCloseable {
-
     private enum State {
 
-        NEW, RUNNING, FAILED, STOPPED
+        NEW,
+        RUNNING,
+        FAILED,
+        STOPPED
     }
 
     private final EngineConfig config;

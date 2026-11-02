@@ -3,7 +3,6 @@ package jse.render;
 import java.util.Objects;
 
 public final class GraphicLayers {
-
     private GraphicLayers() {
     }
 

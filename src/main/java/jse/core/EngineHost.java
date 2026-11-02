@@ -6,7 +6,6 @@ import jse.render.RenderMode;
 import jse.render.Renderer;
 
 public interface EngineHost {
-
     void open(EngineConfig config, LongConsumer pump, Consumer<Renderer> paint, Runnable focusLost,
             Runnable closeRequested, Consumer<RuntimeException> failed);
 

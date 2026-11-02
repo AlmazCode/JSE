@@ -4,7 +4,6 @@ import java.util.Objects;
 import jse.math.Rect;
 
 public final class OutlineDecorator extends GraphicDecorator {
-
     private final DecorationSettings settings;
 
     public OutlineDecorator(Graphic wrapped, DecorationSettings settings) {

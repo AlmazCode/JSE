@@ -13,7 +13,6 @@ import jse.math.Rgba;
 import jse.math.Vec2;
 
 public abstract class AbstractFrameRenderer implements FrameRenderer {
-
     protected final AssetManager assets;
     protected final RenderStyle style;
     private final Font font;

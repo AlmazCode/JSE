@@ -6,12 +6,10 @@ import jse.world.Enemy;
 import jse.world.WorldView;
 
 /**
- * Walks back and forth between two waypoints. On the last step it slows down so it never
- * overshoots, and it switches to the other waypoint on the following update. Each enemy needs its
- * own instance because the current target is state.
+ * Alternates between two waypoints, limiting speed to reach each waypoint without overshooting. The
+ * target changes when the current step reaches it. Each enemy needs its own instance.
  */
 public final class PatrolBehavior implements BehaviorStrategy {
-
     private final Vec2 first;
     private final Vec2 second;
     private boolean headingToSecond = true;
@@ -22,7 +20,7 @@ public final class PatrolBehavior implements BehaviorStrategy {
     }
 
     @Override
-    public Vec2 calculateMovement(Enemy enemy, WorldView world, double dt) {
+    public Vec2 desiredVelocity(Enemy enemy, WorldView world, double dt) {
         Behaviors.require(enemy, world, dt);
         Vec2 toTarget = (headingToSecond ? second : first).subtract(enemy.position());
         double distance = toTarget.length();

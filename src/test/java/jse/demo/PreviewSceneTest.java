@@ -18,13 +18,11 @@ import jse.render.Renderer;
 import org.junit.jupiter.api.Test;
 
 class PreviewSceneTest {
-
     @Test
     void movementIsNormalizedAndPauseFocusResetAndSwitchPreserveState() throws Exception {
         var settings = LaunchSettings.load(null);
         var renderer = new CaptureRenderer();
         var control = new EngineControl() {
-
             public void requestScene(Scene scene) {
                 fail("Preview must not request game scenes");
             }
@@ -65,7 +63,6 @@ class PreviewSceneTest {
     }
 
     static class CaptureRenderer implements Renderer {
-
         Rect object;
 
         public void drawSprite(SpriteId id, Rect bounds) {

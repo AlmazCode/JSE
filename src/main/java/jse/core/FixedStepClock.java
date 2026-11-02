@@ -1,7 +1,6 @@
 package jse.core;
 
 final class FixedStepClock {
-
     record FramePlan(int steps, double dt) {
     }
 

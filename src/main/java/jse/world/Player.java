@@ -6,7 +6,6 @@ import jse.render.Graphic;
 import jse.render.HealthView;
 
 public abstract class Player extends GameObject implements HealthView {
-
     private final double speed;
     private final int maxHealth;
     private int currentHealth;

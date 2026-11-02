@@ -8,6 +8,7 @@ import javax.swing.SwingUtilities;
 import jse.assets.AssetManager;
 import jse.core.JseEngine;
 import jse.core.Scene;
+import jse.platform.awt.HostSettings;
 import jse.platform.awt.SwingHost;
 import jse.platform.awt.SwingInputSource;
 import jse.render.RenderMode;
@@ -15,6 +16,18 @@ import jse.render.awt.FilledRenderer;
 import jse.render.awt.WireframeRenderer;
 
 public final class DemoApplication {
+    private static final String HELP = """
+            Usage: java -jar jse-demo.jar [--example preview|showcase|game] [--config FILE]
+            Examples: preview (default), showcase, game (Arena and rendering showcase).
+            FILE is a UTF-8 properties override.
+
+            Preview: WASD/arrows move, P pause, R reset, F1 renderer, Escape close.
+            Showcase: F1 renderer, F2 outline, F3 health bars, T theme, Escape back/close.
+            Game menu: Enter Arena, H Showcase, Escape close.
+            Arena: WASD/arrows move, P pause, R reset, T theme, Escape menu.
+            Arena graphics: F1 renderer, F2 outline, F3 health bars.
+            Arena AI/events: Tab select enemy, B change behavior, L toggle event log.
+            """;
 
     private DemoApplication() {
     }
@@ -23,13 +36,7 @@ public final class DemoApplication {
         try {
             var arguments = LaunchArguments.parse(args);
             if (arguments.help()) {
-                System.out.println(
-                        "Usage: java -jar jse-demo.jar [--example preview|showcase|game] [--config FILE]\n"
-                                + "Launch the JSE runtime preview (default), rendering showcase or game menu.\n"
-                                + "FILE is a UTF-8 properties override.\n"
-                                + "Preview: WASD / arrows, P pause, R reset, F1 renderer, Escape close.\n"
-                                + "Showcase: F1 renderer, F2 outline, F3 health, T theme, Escape close.\n"
-                                + "Game: Enter Arena, H Showcase, Escape menu/close, P pause, R reset, T theme.");
+                System.out.print(HELP);
                 return;
             }
             var settings = LaunchSettings.load(arguments.config(), arguments.example());
@@ -56,12 +63,12 @@ public final class DemoApplication {
         var input = new SwingInputSource(settings.keys());
         var hostSettings = settings.host();
         if (example == LaunchArguments.Example.SHOWCASE) {
-            hostSettings = new jse.platform.awt.HostSettings("JSE | Rendering Showcase",
-                    hostSettings.background(), hostSettings.initialMode());
+            hostSettings = new HostSettings("JSE | Rendering Showcase", hostSettings.background(),
+                    hostSettings.initialMode());
         }
         if (example == LaunchArguments.Example.GAME) {
-            hostSettings = new jse.platform.awt.HostSettings("JSE | Game",
-                    hostSettings.background(), hostSettings.initialMode());
+            hostSettings = new HostSettings("JSE | Game", hostSettings.background(),
+                    hostSettings.initialMode());
         }
         var host = new SwingHost(hostSettings, input,
                 Map.of(RenderMode.FILLED, new FilledRenderer(assets, settings.render()),

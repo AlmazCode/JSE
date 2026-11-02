@@ -7,7 +7,6 @@ import java.util.EnumSet;
 import org.junit.jupiter.api.Test;
 
 class InputStateTest {
-
     @Test
     void snapshotsDoNotRetainMutableCollections() {
         var keys = EnumSet.of(GameAction.MOVE_UP);

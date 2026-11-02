@@ -6,7 +6,6 @@ import java.util.Objects;
  * Application-owned display choices, independent of a game's state and lifetime.
  */
 public final class VisualPreferences {
-
     private RenderMode mode;
     private boolean outline = true;
     private boolean healthBar = true;

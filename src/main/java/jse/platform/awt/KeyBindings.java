@@ -6,7 +6,6 @@ import java.util.stream.Collectors;
 import jse.input.GameAction;
 
 public record KeyBindings(Map<Integer, GameAction> keys) {
-
     public KeyBindings {
         keys = Map.copyOf(keys);
         if (keys.isEmpty()

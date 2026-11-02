@@ -30,22 +30,19 @@ import jse.world.Player;
 import jse.world.ThemeId;
 import jse.world.World;
 
-/**
- * Scene-owned model lifetime. Rendering and navigation have no simulation responsibilities.
- */
+/** Owns one arena's simulation, rules and event subscriptions. */
 public final class ArenaRun implements AutoCloseable {
-
     private final EventBus events = new EventBus();
     private final World world;
     private final Player player;
     private final GameSettings game;
     private final AiSystem ai = new AiSystem(events);
     private final HudObserver hud;
-    private EventLogObserver log;
-    private long selectedEnemyId;
     private final ArenaRules rules;
     private final MotionSystem motion = new MotionSystem();
     private final CollisionSystem collisions = new CollisionSystem();
+    private EventLogObserver log;
+    private long selectedEnemyId;
     private long tick;
     private boolean paused;
     private boolean closed;
@@ -57,48 +54,18 @@ public final class ArenaRun implements AutoCloseable {
     public ArenaRun(long runId, ThemeId theme, LaunchSettings settings, Renderer renderer,
             boolean logEnabled) {
         game = settings.game();
-        var paths = theme == ThemeId.FOREST
-                ? settings.showcase().forestSprites()
-                : settings.showcase().spaceSprites();
-        var sprites = new FamilySprites(paths.get(0), paths.get(1), paths.get(2));
-        GameObjectFamilyFactory factory = theme == ThemeId.FOREST
-                ? new ForestFactory(renderer, game.entities(), sprites)
-                : new SpaceFactory(renderer, game.entities(), sprites);
+        var factory = createFactory(theme, settings.showcase(), renderer);
         world = new World(runId, game.arena(settings.engine(), settings.showcase().decorations()),
                 theme, game.worldCapacity(), events);
         rules = new ArenaRules(game.rules(), events);
-        player = new PlayerSpawner(factory).spawn(world,
-                new SpawnRequest(game.position(world.arena(), 0, game.entities().player().size()),
-                        game.entities().player().size()));
-        int index = 1;
-        for (int i = 0; i < game.enemyCount(); i++) {
-            new EnemySpawner(factory).spawn(world,
-                    new SpawnRequest(
-                            game.position(world.arena(), index++, game.entities().enemy().size()),
-                            game.entities().enemy().size()));
-        }
-        for (int i = 0; i < game.pickupCount(); i++) {
-            new PickupSpawner(factory).spawn(world,
-                    new SpawnRequest(
-                            game.position(world.arena(), index++, game.entities().pickup().size()),
-                            game.entities().pickup().size()));
-        }
+        player = spawnEntities(factory);
         hud = new HudObserver(events, player);
         if (logEnabled) {
             log = new EventLogObserver(events, game.logCapacity());
         }
+        // Observers must see the initial spawn events as well as later changes.
         world.commitChanges(0);
-        var enemies = enemies();
-        for (int i = 0; i < enemies.size(); i++) {
-            var enemy = enemies.get(i);
-            BehaviorStrategy behavior = switch (i % 3) {
-                case 0 -> patrol(enemy);
-                case 1 -> new ChaseBehavior();
-                default -> new FleeBehavior(game.fleeRadius());
-            };
-            ai.changeBehavior(world, enemy.id(), behavior, 0);
-        }
-        selectedEnemyId = enemies.isEmpty() ? 0 : enemies.get(0).id();
+        assignInitialBehaviors();
     }
 
     public World world() {
@@ -125,26 +92,6 @@ public final class ArenaRun implements AutoCloseable {
         return Optional.ofNullable(log);
     }
 
-    private List<Enemy> enemies() {
-        var result = new ArrayList<Enemy>();
-        world.forEachActive(object -> {
-            if (object instanceof Enemy enemy) {
-                result.add(enemy);
-            }
-        });
-        return result;
-    }
-
-    private BehaviorStrategy patrol(Enemy enemy) {
-        var target = world.arena().clampPosition(
-                enemy.position().add(new Vec2(game.patrolDistance(), 0)), enemy.size());
-        if (target.equals(enemy.position())) {
-            target = world.arena().clampPosition(
-                    enemy.position().subtract(new Vec2(game.patrolDistance(), 0)), enemy.size());
-        }
-        return new PatrolBehavior(enemy.position(), target);
-    }
-
     public Optional<Enemy> selectedEnemy() {
         return world.findActive(selectedEnemyId).filter(Enemy.class::isInstance)
                 .map(Enemy.class::cast);
@@ -162,14 +109,8 @@ public final class ArenaRun implements AutoCloseable {
     }
 
     public void cycleBehavior() {
-        selectedEnemy().ifPresent(enemy -> {
-            BehaviorStrategy next = enemy.behavior() instanceof PatrolBehavior
-                    ? new ChaseBehavior()
-                    : enemy.behavior() instanceof ChaseBehavior
-                            ? new FleeBehavior(game.fleeRadius())
-                            : patrol(enemy);
-            ai.changeBehavior(world, enemy.id(), next, tick);
-        });
+        selectedEnemy().ifPresent(
+                enemy -> ai.changeBehavior(world, enemy.id(), nextBehavior(enemy), tick));
     }
 
     public void setLogEnabled(boolean enabled) {
@@ -207,16 +148,91 @@ public final class ArenaRun implements AutoCloseable {
         if (paused || rules.status() != ArenaRules.Status.RUNNING) {
             return;
         }
-        int x = (input.isHeld(GameAction.MOVE_RIGHT) ? 1 : 0)
-                - (input.isHeld(GameAction.MOVE_LEFT) ? 1 : 0);
-        int y = (input.isHeld(GameAction.MOVE_DOWN) ? 1 : 0)
-                - (input.isHeld(GameAction.MOVE_UP) ? 1 : 0);
-        player.setVelocity(new Vec2(x, y).normalized().scale(player.speed()));
+        updatePlayerVelocity(input);
         ai.update(world, world.view(), dt);
         motion.update(world, dt);
         rules.applyCollisions(world, collisions.findOverlaps(world.view()), dt, tick);
         world.commitChanges(tick);
         rules.evaluateOutcome(world, tick);
+    }
+
+    private GameObjectFamilyFactory createFactory(ThemeId theme, ShowcaseSettings showcase,
+            Renderer renderer) {
+        var paths = theme == ThemeId.FOREST ? showcase.forestSprites() : showcase.spaceSprites();
+        var sprites = new FamilySprites(paths.get(0), paths.get(1), paths.get(2));
+        return theme == ThemeId.FOREST
+                ? new ForestFactory(renderer, game.entities(), sprites)
+                : new SpaceFactory(renderer, game.entities(), sprites);
+    }
+
+    private Player spawnEntities(GameObjectFamilyFactory factory) {
+        var spawnedPlayer = new PlayerSpawner(factory).spawn(world,
+                spawnRequest(0, game.entities().player().size()));
+        int index = 1;
+        for (int i = 0; i < game.enemyCount(); i++) {
+            new EnemySpawner(factory).spawn(world,
+                    spawnRequest(index++, game.entities().enemy().size()));
+        }
+        for (int i = 0; i < game.pickupCount(); i++) {
+            new PickupSpawner(factory).spawn(world,
+                    spawnRequest(index++, game.entities().pickup().size()));
+        }
+        return spawnedPlayer;
+    }
+
+    private SpawnRequest spawnRequest(int index, Vec2 size) {
+        return new SpawnRequest(game.position(world.arena(), index, size), size);
+    }
+
+    private void assignInitialBehaviors() {
+        var enemies = enemies();
+        for (int i = 0; i < enemies.size(); i++) {
+            var enemy = enemies.get(i);
+            BehaviorStrategy behavior = switch (i % 3) {
+                case 0 -> patrol(enemy);
+                case 1 -> new ChaseBehavior();
+                default -> new FleeBehavior(game.fleeRadius());
+            };
+            ai.changeBehavior(world, enemy.id(), behavior, 0);
+        }
+        selectedEnemyId = enemies.isEmpty() ? 0 : enemies.get(0).id();
+    }
+
+    private List<Enemy> enemies() {
+        var result = new ArrayList<Enemy>();
+        world.forEachActive(object -> {
+            if (object instanceof Enemy enemy) {
+                result.add(enemy);
+            }
+        });
+        return result;
+    }
+
+    private BehaviorStrategy nextBehavior(Enemy enemy) {
+        if (enemy.behavior() instanceof PatrolBehavior) {
+            return new ChaseBehavior();
+        }
+        if (enemy.behavior() instanceof ChaseBehavior) {
+            return new FleeBehavior(game.fleeRadius());
+        }
+        return patrol(enemy);
+    }
+
+    private PatrolBehavior patrol(Enemy enemy) {
+        var offset = new Vec2(game.patrolDistance(), 0);
+        var target = world.arena().clampPosition(enemy.position().add(offset), enemy.size());
+        if (target.equals(enemy.position())) {
+            target = world.arena().clampPosition(enemy.position().subtract(offset), enemy.size());
+        }
+        return new PatrolBehavior(enemy.position(), target);
+    }
+
+    private void updatePlayerVelocity(InputState input) {
+        int x = (input.isHeld(GameAction.MOVE_RIGHT) ? 1 : 0)
+                - (input.isHeld(GameAction.MOVE_LEFT) ? 1 : 0);
+        int y = (input.isHeld(GameAction.MOVE_DOWN) ? 1 : 0)
+                - (input.isHeld(GameAction.MOVE_UP) ? 1 : 0);
+        player.setVelocity(new Vec2(x, y).normalized().scale(player.speed()));
     }
 
     @Override

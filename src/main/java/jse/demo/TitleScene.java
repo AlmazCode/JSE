@@ -8,7 +8,6 @@ import jse.math.Vec2;
 import jse.render.Renderer;
 
 public final class TitleScene implements Scene {
-
     private final GameScenes scenes;
     private EngineServices services;
 

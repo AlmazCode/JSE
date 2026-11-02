@@ -17,7 +17,6 @@ import jse.event.Subscription;
  * Concrete observer keeping the latest log lines of six event types, oldest first.
  */
 public final class EventLogObserver implements AutoCloseable {
-
     public static final int DEFAULT_CAPACITY = 50;
     private final int capacity;
     private final ArrayDeque<String> lines = new ArrayDeque<>();

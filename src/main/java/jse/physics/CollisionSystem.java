@@ -6,7 +6,6 @@ import java.util.List;
 import jse.world.WorldView;
 
 public final class CollisionSystem {
-
     public List<CollisionPair> findOverlaps(WorldView world) {
         var entities = world.entities();
         var pairs = new ArrayList<CollisionPair>();

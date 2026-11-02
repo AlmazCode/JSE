@@ -8,7 +8,6 @@ import jse.math.Vec2;
 
 public record PreviewSettings(Vec2 objectSize, double speed, double padding, double headerHeight,
         double lineHeight, Rgba objectColor, Rgba textColor, Rgba mutedColor) {
-
     public PreviewSettings {
         Objects.requireNonNull(objectSize, "objectSize");
         Objects.requireNonNull(objectColor, "objectColor");

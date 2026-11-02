@@ -16,7 +16,6 @@ import jse.world.Player;
  * Bridges the game model to graphics without retaining a World or a frame context.
  */
 public final class EntityGraphics implements AutoCloseable {
-
     private record Applied(boolean outline, boolean healthBar, Graphic graphic) {
     }
 

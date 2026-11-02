@@ -16,42 +16,48 @@ import jse.render.DecorationSettings;
 public record GameSettings(EntitySettings entities, ArenaSettings rules, int worldCapacity,
         int enemyCount, int pickupCount, double padding, double headerHeight, double lineHeight,
         double patrolDistance, double fleeRadius, int logCapacity, int logRows) {
-
     public GameSettings {
         Objects.requireNonNull(entities, "entities");
         Objects.requireNonNull(rules, "rules");
-        if (!Double.isFinite(patrolDistance) || patrolDistance <= 0 || !Double.isFinite(fleeRadius)
-                || fleeRadius <= 0 || logCapacity <= 0 || logRows <= 0 || logRows > 5
-                || enemyCount < 0 || enemyCount > 16 || pickupCount <= 0 || pickupCount > 16
-                || worldCapacity < 1 + enemyCount + pickupCount
-                || (long) pickupCount * entities.pickup().value() < rules.targetScore()
-                || !Double.isFinite(padding) || padding <= 0 || !Double.isFinite(headerHeight)
-                || headerHeight <= 0 || !Double.isFinite(lineHeight) || lineHeight <= 0) {
+        boolean validCounts = enemyCount >= 0 && enemyCount <= 16 && pickupCount > 0
+                && pickupCount <= 16 && worldCapacity >= 1 + enemyCount + pickupCount
+                && logCapacity > 0 && logRows > 0 && logRows <= 5;
+        boolean reachableScore = (long) pickupCount * entities.pickup().value() >= rules
+                .targetScore();
+        boolean validDimensions = positiveFinite(padding) && positiveFinite(headerHeight)
+                && positiveFinite(lineHeight) && positiveFinite(patrolDistance)
+                && positiveFinite(fleeRadius);
+        if (!validCounts || !reachableScore || !validDimensions) {
             throw new IllegalArgumentException(
                     "Game counts, capacity, dimensions and obtainable score must be valid");
         }
     }
 
     static GameSettings from(Properties values) {
-        var r = new LaunchSettings.SettingsReader(values);
-        var player = new PlayerSettings(square(r.number("game.player_size")),
-                r.number("game.player_speed"), r.integer("game.player_health"));
-        var enemy = new EnemySettings(square(r.number("game.enemy_size")),
-                r.number("game.enemy_speed"));
-        var pickup = new PickupSettings(square(r.number("game.pickup_size")),
-                r.integer("game.pickup_value"));
+        var reader = new LaunchSettings.SettingsReader(values);
+        var player = new PlayerSettings(square(reader.number("game.player_size")),
+                reader.number("game.player_speed"), reader.integer("game.player_health"));
+        var enemy = new EnemySettings(square(reader.number("game.enemy_size")),
+                reader.number("game.enemy_speed"));
+        var pickup = new PickupSettings(square(reader.number("game.pickup_size")),
+                reader.integer("game.pickup_value"));
         return new GameSettings(new EntitySettings(player, enemy, pickup),
-                new ArenaSettings(r.integer("game.target_score"), r.number("game.damage_cooldown"),
-                        r.integer("game.contact_damage")),
-                r.integer("game.world_capacity"), r.integer("game.enemy_count"),
-                r.integer("game.pickup_count"), r.number("game.padding"),
-                r.number("game.header_height"), r.number("game.line_height"),
-                r.number("game.patrol_distance"), r.number("game.flee_radius"),
-                r.integer("game.log_capacity"), r.integer("game.log_rows"));
+                new ArenaSettings(reader.integer("game.target_score"),
+                        reader.number("game.damage_cooldown"),
+                        reader.integer("game.contact_damage")),
+                reader.integer("game.world_capacity"), reader.integer("game.enemy_count"),
+                reader.integer("game.pickup_count"), reader.number("game.padding"),
+                reader.number("game.header_height"), reader.number("game.line_height"),
+                reader.number("game.patrol_distance"), reader.number("game.flee_radius"),
+                reader.integer("game.log_capacity"), reader.integer("game.log_rows"));
     }
 
     private static Vec2 square(double side) {
         return new Vec2(side, side);
+    }
+
+    private static boolean positiveFinite(double value) {
+        return Double.isFinite(value) && value > 0;
     }
 
     public Rect arena(EngineConfig config, DecorationSettings decorations) {
@@ -84,16 +90,23 @@ public record GameSettings(EntitySettings entities, ArenaSettings rules, int wor
                 settings.render().fontSize());
         var context = new FontRenderContext(null, settings.render().antialias(), false);
         var metrics = font.getLineMetrics("Ag", context);
-        double largest = Math.max(entities.player().size().x(),
+        double largestWidth = Math.max(entities.player().size().x(),
                 Math.max(entities.enemy().size().x(), entities.pickup().size().x()));
-        if (padding < Math.max(metrics.getDescent(),
-                settings.render().strokeWidth() / 2 + decorations.outlineWidth())
-                || lineHeight < metrics.getHeight() || headerHeight < padding + lineHeight * 6
-                || GameLabels.title(settings.keys()).size() * lineHeight
-                        + metrics.getDescent() > settings.engine().height() - padding
-                || bounds.width() / columns() < largest + 2 * decorations.outlineWidth()
-                || bounds.height() / rows() < largest + decorations.barHeight()
-                        + decorations.barOffset() + 2 * decorations.outlineWidth()) {
+        double largestHeight = Math.max(entities.player().size().y(),
+                Math.max(entities.enemy().size().y(), entities.pickup().size().y()));
+        double minimumPadding = Math.max(metrics.getDescent(),
+                settings.render().strokeWidth() / 2 + decorations.outlineWidth());
+        double titleHeight = GameLabels.title(settings.keys()).size() * lineHeight
+                + metrics.getDescent();
+        double cellWidth = largestWidth + 2 * decorations.outlineWidth();
+        double cellHeight = largestHeight + decorations.barHeight() + decorations.barOffset()
+                + 2 * decorations.outlineWidth();
+        boolean textFits = padding >= minimumPadding && lineHeight >= metrics.getHeight()
+                && headerHeight >= padding + lineHeight * 6
+                && titleHeight <= settings.engine().height() - padding;
+        boolean gridFits = bounds.width() / columns() >= cellWidth
+                && bounds.height() / rows() >= cellHeight;
+        if (!textFits || !gridFits) {
             throw new IllegalArgumentException("Game graphics and text must fit the viewport");
         }
         for (var text : GameLabels.validationText(settings)) {

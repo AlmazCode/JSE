@@ -4,7 +4,6 @@ import java.util.Objects;
 import jse.math.Rect;
 
 public abstract class GraphicDecorator extends Graphic {
-
     protected final Graphic wrapped;
 
     protected GraphicDecorator(Graphic wrapped) {

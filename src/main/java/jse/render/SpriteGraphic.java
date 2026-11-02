@@ -5,7 +5,6 @@ import jse.assets.SpriteId;
 import jse.math.Rect;
 
 public final class SpriteGraphic extends Graphic {
-
     private final SpriteId sprite;
 
     public SpriteGraphic(Renderer renderer, SpriteId sprite) {

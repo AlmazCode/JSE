@@ -19,7 +19,6 @@ import jse.world.WorldView;
 import org.junit.jupiter.api.Test;
 
 class BehaviorTest {
-
     private static final double DT = 1.0 / 60;
     private final EventBus bus = new EventBus();
     private final World world = Fixtures.world(bus);

@@ -30,7 +30,6 @@ import jse.world.World;
 import org.junit.jupiter.api.Test;
 
 class ArenaIntegrationTest {
-
     private static InputState input(GameAction... pressed) {
         return new InputState(Set.of(), Set.of(pressed));
     }
@@ -186,11 +185,8 @@ class ArenaIntegrationTest {
     }
 
     static class Control implements EngineControl {
-
         Scene next;
-
         boolean stopped;
-
         final List<RenderMode> modes = new ArrayList<>();
 
         public void requestScene(Scene scene) {

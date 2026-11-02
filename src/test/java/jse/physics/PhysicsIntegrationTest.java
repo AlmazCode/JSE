@@ -19,7 +19,6 @@ import jse.world.WorldView;
 import org.junit.jupiter.api.Test;
 
 class PhysicsIntegrationTest {
-
     @Test
     void collisionsAreSortedDistinctAndExcludeEdgeTouching() {
         var view = new WorldView(

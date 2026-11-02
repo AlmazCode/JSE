@@ -4,7 +4,6 @@ import java.util.Objects;
 import jse.math.Rect;
 
 public final class HealthBarDecorator extends GraphicDecorator {
-
     private final HealthView health;
     private final DecorationSettings settings;
 

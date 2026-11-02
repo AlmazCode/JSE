@@ -14,7 +14,6 @@ import jse.world.WorldView;
 import org.junit.jupiter.api.Test;
 
 class IdleBehaviorTest {
-
     @Test
     void defaultBehaviorUsesTheActualEnemyTypeAndReturnsFiniteStationaryIntent() {
         var enemy = new ForestFactory(new GameFixtures.CaptureRenderer(), GameFixtures.entities(),
@@ -22,7 +21,6 @@ class IdleBehaviorTest {
                 .createEnemy(new SpawnRequest(new Vec2(10, 20), new Vec2(24, 24)));
         var view = new WorldView(List.of(), Optional.empty(), new Rect(0, 0, 200, 160));
         assertEquals(Vec2.ZERO, enemy.behavior().desiredVelocity(enemy, view, 0.1));
-        assertEquals(Vec2.ZERO, enemy.behavior().calculateMovement(enemy, view, 0.1));
         assertThrows(IllegalArgumentException.class,
                 () -> enemy.behavior().desiredVelocity(enemy, view, Double.NaN));
         assertThrows(IllegalArgumentException.class,

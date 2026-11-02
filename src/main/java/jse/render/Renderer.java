@@ -6,7 +6,6 @@ import jse.math.Rgba;
 import jse.math.Vec2;
 
 public interface Renderer {
-
     void drawSprite(SpriteId sprite, Rect bounds);
 
     void drawRectangle(Rect bounds, Rgba color);

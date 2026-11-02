@@ -5,7 +5,6 @@ import jse.math.Rgba;
 import jse.render.RenderMode;
 
 public record HostSettings(String title, Rgba background, RenderMode initialMode) {
-
     public HostSettings {
         Objects.requireNonNull(title, "title");
         Objects.requireNonNull(background, "background");

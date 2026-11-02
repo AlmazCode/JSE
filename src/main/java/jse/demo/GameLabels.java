@@ -5,7 +5,6 @@ import jse.input.GameAction;
 import jse.platform.awt.KeyBindings;
 
 final class GameLabels {
-
     private GameLabels() {
     }
 

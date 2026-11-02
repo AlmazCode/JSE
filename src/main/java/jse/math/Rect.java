@@ -1,7 +1,6 @@
 package jse.math;
 
 public record Rect(double x, double y, double width, double height) {
-
     public Rect {
         if (!Double.isFinite(x) || !Double.isFinite(y) || !Double.isFinite(width)
                 || !Double.isFinite(height) || width <= 0 || height <= 0

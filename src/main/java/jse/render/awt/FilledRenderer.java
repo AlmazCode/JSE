@@ -7,7 +7,6 @@ import jse.math.Rect;
 import jse.math.Rgba;
 
 public final class FilledRenderer extends AbstractFrameRenderer {
-
     public FilledRenderer(AssetManager assets, RenderStyle style) {
         super(assets, style);
     }

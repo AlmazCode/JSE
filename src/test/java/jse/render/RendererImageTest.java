@@ -18,7 +18,6 @@ import jse.render.awt.WireframeRenderer;
 import org.junit.jupiter.api.Test;
 
 class RendererImageTest {
-
     private static final Rgba WHITE = new Rgba(255, 255, 255, 255);
 
     private FrameRenderer renderer(boolean filled) {

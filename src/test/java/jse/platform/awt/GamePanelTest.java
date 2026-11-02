@@ -16,7 +16,6 @@ import jse.render.awt.RenderStyle;
 import org.junit.jupiter.api.Test;
 
 class GamePanelTest {
-
     @Test
     void paintFailureEndsFrameBeforeReportingAndPreservesOriginalGraphics() throws Exception {
         SwingUtilities.invokeAndWait(() -> {

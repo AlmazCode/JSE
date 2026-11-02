@@ -13,7 +13,6 @@ import jse.render.RenderMode;
 import jse.render.Renderer;
 
 public final class PreviewScene implements Scene {
-
     private final PreviewSettings settings;
     private final KeyBindings keys;
     private RenderMode mode;

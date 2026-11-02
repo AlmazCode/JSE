@@ -5,7 +5,6 @@ import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 
 public final class SceneManager implements AutoCloseable {
-
     private Scene current;
     private Scene pending;
 

@@ -13,7 +13,6 @@ import jse.world.WorldView;
  * replacement. It never moves anything; positions belong to MotionSystem.
  */
 public final class AiSystem {
-
     private final EventBus events;
 
     public AiSystem(EventBus events) {
@@ -21,15 +20,14 @@ public final class AiSystem {
     }
 
     /**
-     * @param view
-     *            snapshot taken before this update so all enemies see the same world
+     * @param view snapshot taken before this update so all enemies see the same world
      */
     public void update(World world, WorldView view, double dt) {
         Objects.requireNonNull(world, "world");
         Objects.requireNonNull(view, "view");
         world.forEachActive(object -> {
             if (object instanceof Enemy enemy) {
-                Vec2 velocity = enemy.behavior().calculateMovement(enemy, view, dt);
+                Vec2 velocity = enemy.behavior().desiredVelocity(enemy, view, dt);
                 enemy.setVelocity(
                         Objects.requireNonNull(velocity, "strategy returned null velocity"));
             }

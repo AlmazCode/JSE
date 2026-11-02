@@ -7,7 +7,6 @@ import jse.math.Vec2;
 import jse.render.Graphic;
 
 public abstract class GameObject {
-
     private final ObjectKind category;
     private final ThemeId familyId;
     private Vec2 position;
@@ -26,12 +25,9 @@ public abstract class GameObject {
         Objects.requireNonNull(request);
         this.position = request.position();
         this.size = request.size();
-        this.velocity = new Vec2(0, 0);
+        this.velocity = Vec2.ZERO;
         this.baseGraphic = Objects.requireNonNull(baseGraphic);
         this.graphic = baseGraphic;
-        this.id = 0;
-        this.active = false;
-        this.pendingRemoval = false;
     }
 
     public long id() {

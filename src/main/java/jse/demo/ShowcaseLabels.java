@@ -8,11 +8,8 @@ import jse.platform.awt.KeyBindings;
 import jse.render.RenderMode;
 
 final class ShowcaseLabels {
-
     static final String TITLE = "JSE / Rendering Showcase";
-
     static final String BASE = "Base graphic";
-
     static final String DECORATED = "Decorated graphic";
 
     private ShowcaseLabels() {

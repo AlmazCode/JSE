@@ -17,7 +17,6 @@ import jse.math.Rect;
 import jse.math.Vec2;
 
 public final class World implements AutoCloseable {
-
     private final long runId;
     private final Rect arena;
     private final ThemeId familyId;

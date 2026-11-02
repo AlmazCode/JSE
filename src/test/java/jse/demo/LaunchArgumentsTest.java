@@ -8,7 +8,6 @@ import java.nio.file.Path;
 import org.junit.jupiter.api.Test;
 
 class LaunchArgumentsTest {
-
     @Test
     void selectsExamplesAndConfigWithoutChangingTheDefault() {
         assertEquals(LaunchArguments.Example.PREVIEW,

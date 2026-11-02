@@ -8,7 +8,6 @@ import jse.math.Rgba;
 import jse.math.Vec2;
 
 public final class WireframeRenderer extends AbstractFrameRenderer {
-
     private final boolean spriteLabels;
 
     public WireframeRenderer(AssetManager assets, RenderStyle style) {

@@ -17,7 +17,6 @@ import jse.input.InputSource;
 import jse.input.InputState;
 
 public final class SwingInputSource implements InputSource {
-
     private record InstalledKey(KeyStroke stroke, Object previousLocal, Object actionId) {
     }
 
@@ -52,7 +51,6 @@ public final class SwingInputSource implements InputSource {
                         localKeys.contains(stroke) ? map.get(stroke) : null, id));
                 map.put(stroke, id);
                 component.getActionMap().put(id, new AbstractAction() {
-
                     @Override
                     public void actionPerformed(ActionEvent event) {
                         if (released) {

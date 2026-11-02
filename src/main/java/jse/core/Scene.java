@@ -4,7 +4,6 @@ import jse.input.InputState;
 import jse.render.Renderer;
 
 public interface Scene {
-
     void onEnter(EngineServices services);
 
     void update(double dt, InputState input);

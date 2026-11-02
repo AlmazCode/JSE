@@ -2,5 +2,6 @@ package jse.world;
 
 public enum ThemeId {
 
-    FOREST, SPACE
+    FOREST,
+    SPACE
 }

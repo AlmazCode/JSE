@@ -6,7 +6,6 @@ import jse.world.ObjectKind;
 import jse.world.World;
 
 public abstract class EntitySpawner<T extends GameObject> {
-
     protected final GameObjectFamilyFactory factory;
     private final ObjectKind expectedKind;
 

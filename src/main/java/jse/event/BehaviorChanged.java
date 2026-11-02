@@ -5,7 +5,6 @@ package jse.event;
  */
 public record BehaviorChanged(long runId, long tick, long enemyId,
         String behaviorName) implements GameEvent {
-
     public BehaviorChanged {
         if (runId <= 0 || tick < 0 || enemyId <= 0) {
             throw new IllegalArgumentException("Invalid behavior event identity");

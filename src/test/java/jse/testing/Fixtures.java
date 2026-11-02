@@ -22,7 +22,6 @@ import jse.world.World;
  * Minimal concrete products and a silent renderer, so the patterns can be tested in isolation.
  */
 public final class Fixtures {
-
     public static final Rect ARENA = new Rect(0, 0, 500, 300);
     public static final Vec2 SIZE = new Vec2(20, 20);
 
@@ -30,7 +29,6 @@ public final class Fixtures {
     }
 
     public static final Renderer SILENT = new Renderer() {
-
         @Override
         public void drawSprite(SpriteId sprite, Rect bounds) {
         }
@@ -73,21 +71,18 @@ public final class Fixtures {
     }
 
     public static final class TestPlayer extends Player {
-
         public TestPlayer(ThemeId family, SpawnRequest request, int health) {
             super(family, request, newGraphic(), new PlayerSettings(request.size(), 200, health));
         }
     }
 
     public static final class TestEnemy extends Enemy {
-
         public TestEnemy(ThemeId family, SpawnRequest request, double speed) {
             super(family, request, newGraphic(), new EnemySettings(request.size(), speed));
         }
     }
 
     public static final class TestPickup extends Pickup {
-
         public TestPickup(ThemeId family, SpawnRequest request, int value) {
             super(family, request, newGraphic(), new PickupSettings(request.size(), value));
         }

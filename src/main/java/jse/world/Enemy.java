@@ -8,7 +8,6 @@ import jse.factory.SpawnRequest;
 import jse.render.Graphic;
 
 public abstract class Enemy extends GameObject {
-
     private final double speed;
     private BehaviorStrategy behavior;
 

@@ -8,7 +8,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
 
 class GeometryTest {
-
     @Test
     void normalizationHandlesZeroAndExtremeFiniteVectors() {
         assertEquals(Vec2.ZERO, Vec2.ZERO.normalized());

@@ -5,7 +5,6 @@ import jse.math.Rgba;
 
 public record RenderStyle(String fontFamily, int fontSize, float strokeWidth, Rgba wireframeColor,
         boolean antialias) {
-
     public RenderStyle {
         Objects.requireNonNull(fontFamily, "fontFamily");
         Objects.requireNonNull(wireframeColor, "wireframeColor");

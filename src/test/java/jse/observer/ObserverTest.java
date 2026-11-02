@@ -20,7 +20,6 @@ import jse.world.ThemeId;
 import org.junit.jupiter.api.Test;
 
 class ObserverTest {
-
     private final EventBus bus = new EventBus();
 
     @Test

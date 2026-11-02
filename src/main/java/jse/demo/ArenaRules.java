@@ -1,7 +1,9 @@
 package jse.demo;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import jse.event.EventBus;
 import jse.event.GameFinished;
 import jse.event.HealthChanged;
@@ -15,10 +17,11 @@ import jse.world.RemovalReason;
 import jse.world.World;
 
 public final class ArenaRules {
-
     public enum Status {
 
-        RUNNING, WON, LOST
+        RUNNING,
+        WON,
+        LOST
     }
 
     private final ArenaSettings settings;
@@ -51,35 +54,49 @@ public final class ArenaRules {
         boolean enemyContact = false;
         Player player = player(world);
         for (var pair : collisions) {
-            var first = world.findActive(pair.firstId());
-            var second = world.findActive(pair.secondId());
-            if (first.isEmpty() || second.isEmpty()) {
+            var partner = collisionPartner(world, pair, player);
+            if (partner.isEmpty()) {
                 continue;
             }
-            GameObject other;
-            if (first.get() == player) {
-                other = second.get();
-            } else if (second.get() == player) {
-                other = first.get();
-            } else {
-                continue;
-            }
+            var other = partner.get();
             if (other instanceof Pickup pickup) {
-                world.enqueueRemove(pickup.id(), RemovalReason.COLLECTED);
-                score = Math.addExact(score, pickup.value());
-                events.publish(
-                        new ItemCollected(world.runId(), tick, player.id(), pickup.id(), score));
+                collectPickup(world, player, pickup, tick);
             } else if (other instanceof Enemy) {
                 enemyContact = true;
             }
         }
         if (enemyContact && cooldown <= 0 && player.currentHealth() > 0) {
-            int old = player.currentHealth();
-            player.takeDamage(settings.contactDamage());
-            cooldown = settings.damageCooldown();
-            events.publish(new HealthChanged(world.runId(), tick, player.id(), old,
-                    player.currentHealth()));
+            applyContactDamage(world, player, tick);
         }
+    }
+
+    private Optional<GameObject> collisionPartner(World world, CollisionPair pair, Player player) {
+        var first = world.findActive(pair.firstId());
+        var second = world.findActive(pair.secondId());
+        if (first.isEmpty() || second.isEmpty()) {
+            return Optional.empty();
+        }
+        if (first.get() == player) {
+            return second;
+        }
+        if (second.get() == player) {
+            return first;
+        }
+        return Optional.empty();
+    }
+
+    private void collectPickup(World world, Player player, Pickup pickup, long tick) {
+        world.enqueueRemove(pickup.id(), RemovalReason.COLLECTED);
+        score = Math.addExact(score, pickup.value());
+        events.publish(new ItemCollected(world.runId(), tick, player.id(), pickup.id(), score));
+    }
+
+    private void applyContactDamage(World world, Player player, long tick) {
+        int previousHealth = player.currentHealth();
+        player.takeDamage(settings.contactDamage());
+        cooldown = settings.damageCooldown();
+        events.publish(new HealthChanged(world.runId(), tick, player.id(), previousHealth,
+                player.currentHealth()));
     }
 
     public void evaluateOutcome(World world, long tick) {
@@ -97,7 +114,7 @@ public final class ArenaRules {
     }
 
     private Player player(World world) {
-        var players = new java.util.ArrayList<Player>();
+        var players = new ArrayList<Player>();
         world.forEachActive(object -> {
             if (object instanceof Player player) {
                 players.add(player);

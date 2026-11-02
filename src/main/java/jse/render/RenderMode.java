@@ -2,5 +2,6 @@ package jse.render;
 
 public enum RenderMode {
 
-    FILLED, WIREFRAME
+    FILLED,
+    WIREFRAME
 }

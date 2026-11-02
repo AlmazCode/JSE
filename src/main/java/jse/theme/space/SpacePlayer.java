@@ -7,7 +7,6 @@ import jse.world.Player;
 import jse.world.ThemeId;
 
 public final class SpacePlayer extends Player {
-
     public SpacePlayer(SpawnRequest request, Graphic graphic, PlayerSettings settings) {
         super(ThemeId.SPACE, request, graphic, settings);
     }

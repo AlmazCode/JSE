@@ -14,7 +14,6 @@ import jse.world.Player;
 import jse.world.ThemeId;
 
 public final class SpaceFactory implements GameObjectFamilyFactory {
-
     private final Renderer renderer;
     private final EntitySettings settings;
     private final FamilySprites sprites;
