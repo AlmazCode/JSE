@@ -1,4 +1,3 @@
-
 package jse.world;
 
 import java.util.Objects;
@@ -10,14 +9,9 @@ public abstract class Pickup extends GameObject {
 
     private final int value;
 
-    protected Pickup(
-            ThemeId familyId,
-            SpawnRequest request,
-            Graphic graphic,
+    protected Pickup(ThemeId familyId, SpawnRequest request, Graphic graphic,
             PickupSettings settings) {
-
         super(ObjectKind.PICKUP, familyId, request, graphic);
-
         Objects.requireNonNull(settings, "Settings cannot be null");
         this.value = settings.value();
     }

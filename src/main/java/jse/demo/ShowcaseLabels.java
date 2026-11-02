@@ -8,9 +8,15 @@ import jse.platform.awt.KeyBindings;
 import jse.render.RenderMode;
 
 final class ShowcaseLabels {
+
     static final String TITLE = "JSE / Rendering Showcase";
-    static final String BASE = "Base graphic", DECORATED = "Decorated graphic";
-    private ShowcaseLabels() {}
+
+    static final String BASE = "Base graphic";
+
+    static final String DECORATED = "Decorated graphic";
+
+    private ShowcaseLabels() {
+    }
 
     static String controls(KeyBindings keys) {
         return keys.label(GameAction.SWITCH_RENDERER) + ": renderer  |  "
@@ -20,7 +26,8 @@ final class ShowcaseLabels {
     }
 
     private static String exit(KeyBindings keys) {
-        return keys.label(GameAction.BACK_TO_TITLE).isBlank() ? keys.label(GameAction.QUIT) + ": close"
+        return keys.label(GameAction.BACK_TO_TITLE).isBlank()
+                ? keys.label(GameAction.QUIT) + ": close"
                 : keys.label(GameAction.BACK_TO_TITLE) + ": menu";
     }
 
@@ -41,9 +48,13 @@ final class ShowcaseLabels {
 
     static List<String> fullWidthText(ShowcaseSettings settings, KeyBindings keys) {
         var text = new ArrayList<>(List.of(TITLE, controls(keys), footer(keys)));
-        for (boolean value : new boolean[] {false, true}) {
-            for (var mode : RenderMode.values()) text.add(info(settings, mode, value));
-            for (boolean other : new boolean[] {false, true}) text.add(state(value, other));
+        for (boolean value : new boolean[]{false, true}) {
+            for (var mode : RenderMode.values()) {
+                text.add(info(settings, mode, value));
+            }
+            for (boolean other : new boolean[]{false, true}) {
+                text.add(state(value, other));
+            }
         }
         return text;
     }

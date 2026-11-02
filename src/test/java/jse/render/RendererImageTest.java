@@ -1,26 +1,33 @@
 package jse.render;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import java.awt.image.BufferedImage;
-import jse.assets.SpriteId;
 import jse.assets.AssetManager;
 import jse.assets.MissingSpriteStyle;
+import jse.assets.SpriteId;
 import jse.math.Rect;
 import jse.math.Rgba;
+import jse.render.awt.FilledRenderer;
 import jse.render.awt.FrameRenderer;
 import jse.render.awt.RenderStyle;
-import jse.render.awt.FilledRenderer;
 import jse.render.awt.WireframeRenderer;
 import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.*;
 
 class RendererImageTest {
+
     private static final Rgba WHITE = new Rgba(255, 255, 255, 255);
+
     private FrameRenderer renderer(boolean filled) {
-        var assets = new AssetManager(
-                getClass().getClassLoader(), new MissingSpriteStyle(8, 8, WHITE, new Rgba(0, 0, 0, 255)));
+        var assets = new AssetManager(getClass().getClassLoader(),
+                new MissingSpriteStyle(8, 8, WHITE, new Rgba(0, 0, 0, 255)));
         var style = new RenderStyle("Dialog", 12, 1, WHITE, false);
         return filled ? new FilledRenderer(assets, style) : new WireframeRenderer(assets, style);
     }
+
     @Test
     void bridgeReplacementChangesPixelsWithoutChangingBounds() {
         var filledImage = new BufferedImage(40, 40, BufferedImage.TYPE_INT_ARGB);
@@ -45,9 +52,10 @@ class RendererImageTest {
         assertEquals(0xffffffff, wireImage.getRGB(5, 10));
         assertThrows(IllegalStateException.class, () -> graphic.draw(bounds));
     }
+
     @Test
     void frameCannotBeReenteredAndSpriteProducesPixelsInBothModes() {
-        for (boolean filled : new boolean[] {true, false}) {
+        for (boolean filled : new boolean[]{true, false}) {
             var image = new BufferedImage(60, 60, BufferedImage.TYPE_INT_ARGB);
             var graphics = image.createGraphics();
             var renderer = renderer(filled);
@@ -67,15 +75,26 @@ class RendererImageTest {
         var image = new BufferedImage(220, 90, BufferedImage.TYPE_INT_ARGB);
         var graphics = image.createGraphics();
         renderer.beginFrame(graphics, 220, 90);
-        new SpriteGraphic(renderer, new SpriteId("sprites/forest/player.png")).draw(new Rect(10, 25, 30, 30));
+        new SpriteGraphic(renderer, new SpriteId("sprites/forest/player.png"))
+                .draw(new Rect(10, 25, 30, 30));
         renderer.endFrame();
         graphics.dispose();
-        int above = 0, below = 0;
-        for (int y = 5; y < 23; y++) for (int x = 10; x < 210; x++)
-            if (image.getRGB(x, y) != 0) above++;
-        for (int y = 57; y < 75; y++) for (int x = 10; x < 210; x++)
-            if (image.getRGB(x, y) != 0) below++;
-        assertEquals(0, above, "The area above a sprite is reserved for visual layers such as health");
+        int above = 0;
+        int below = 0;
+        for (int y = 5; y < 23; y++) {
+            for (int x = 10; x < 210; x++)
+                if (image.getRGB(x, y) != 0) {
+                    above++;
+                }
+        }
+        for (int y = 57; y < 75; y++) {
+            for (int x = 10; x < 210; x++)
+                if (image.getRGB(x, y) != 0) {
+                    below++;
+                }
+        }
+        assertEquals(0, above,
+                "The area above a sprite is reserved for visual layers such as health");
         assertTrue(below > 0, "The resource label must remain visible below the sprite");
     }
 }

@@ -1,24 +1,34 @@
 package jse.core;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.ArrayList;
 import java.util.function.Consumer;
 import java.util.function.LongConsumer;
+import jse.assets.SpriteId;
 import jse.input.GameAction;
-import jse.input.InputState;
 import jse.input.InputSource;
-import jse.render.Renderer;
-import jse.render.RenderMode;
-import jse.math.Vec2;
+import jse.input.InputState;
 import jse.math.Rect;
 import jse.math.Rgba;
-import jse.assets.SpriteId;
+import jse.math.Vec2;
+import jse.render.RenderMode;
+import jse.render.Renderer;
 import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.*;
 
 class RuntimeTest {
+
     private final EngineConfig config = new EngineConfig(960, 540, 60, 5, 0.25, 16);
+
     @Test
     void clockBoundsCatchupAndPreservesSubTickRemainder() {
         var clock = new FixedStepClock(config);
@@ -29,6 +39,7 @@ class RuntimeTest {
         assertThrows(IllegalArgumentException.class, () -> clock.advance(0));
         assertEquals(1, clock.advance(1_016_666_667).steps());
     }
+
     @Test
     void commandsAppearOnlyInFirstCatchupStep() {
         var input = new Keys();
@@ -49,6 +60,7 @@ class RuntimeTest {
         assertEquals(1, host.closed);
         assertThrows(IllegalStateException.class, () -> engine.start(scene));
     }
+
     @Test
     void lastTransitionWinsAndCancelsRemainingCatchup() {
         var input = new Keys();
@@ -56,6 +68,7 @@ class RuntimeTest {
         var discarded = new RecordingScene();
         var next = new RecordingScene();
         var scene = new RecordingScene() {
+
             @Override
             public void update(double dt, InputState state) {
                 super.update(dt, state);
@@ -77,10 +90,12 @@ class RuntimeTest {
         engine.stop();
         assertEquals(1, next.exits);
     }
+
     @Test
     void partialEntryFailureExitsOnceAndLeavesClosableErrorState() {
         var host = new Host();
         var scene = new RecordingScene() {
+
             @Override
             public void onEnter(EngineServices services) {
                 super.onEnter(services);
@@ -97,16 +112,19 @@ class RuntimeTest {
         assertEquals(1, scene.exits);
         assertEquals(1, host.closed);
     }
+
     @Test
     void updateFailureAndStopDuringUpdateCannotRunFurtherSteps() {
-        for (boolean fail : new boolean[] {false, true}) {
+        for (boolean fail : new boolean[]{false, true}) {
             var host = new Host();
             var scene = new RecordingScene() {
+
                 @Override
                 public void update(double dt, InputState state) {
                     super.update(dt, state);
-                    if (fail)
+                    if (fail) {
                         throw new IllegalStateException("update failure");
+                    }
                     services.control().stop();
                 }
             };
@@ -117,16 +135,19 @@ class RuntimeTest {
             assertEquals(1, scene.inputs.size());
             assertEquals(1, scene.exits);
             assertEquals(fail ? 0 : 1, host.closed);
-            if (fail)
+            if (fail) {
                 assertNotNull(host.error);
+            }
             engine.stop();
             assertEquals(1, host.closed);
         }
     }
+
     @Test
     void stopClosesHostEvenWhenSceneExitThrows() {
         var host = new Host();
         var scene = new RecordingScene() {
+
             @Override
             public void onExit() {
                 super.onExit();
@@ -140,11 +161,13 @@ class RuntimeTest {
         assertEquals(1, scene.exits);
         assertEquals(1, host.closed);
     }
+
     @Test
     void stopDuringExitCancelsReplacementEntry() {
         var host = new Host();
         var next = new RecordingScene();
         var scene = new RecordingScene() {
+
             @Override
             public void onExit() {
                 super.onExit();
@@ -160,6 +183,7 @@ class RuntimeTest {
         assertEquals(0, next.enters);
         assertEquals(1, host.closed);
     }
+
     @Test
     void externalTransitionAdvancesClockWithoutReplayingPreviousGap() {
         var next = new RecordingScene();
@@ -172,6 +196,7 @@ class RuntimeTest {
         assertEquals(1, next.inputs.size());
         engine.stop();
     }
+
     @Test
     void hostPaintFailureStopsUpdatesButKeepsHostAvailableUntilClose() {
         var host = new Host();
@@ -189,22 +214,27 @@ class RuntimeTest {
         engine.stop();
         assertEquals(1, host.closed);
     }
+
     @Test
     void reusedExceptionAcrossFailureAndCleanupPreservesOriginalCause() {
-        for (boolean failOnEntry : new boolean[] {true, false}) {
+        for (boolean failOnEntry : new boolean[]{true, false}) {
             var failure = new IllegalStateException("shared failure");
             var host = new Host();
             var scene = new RecordingScene() {
+
                 @Override
                 public void onEnter(EngineServices services) {
                     super.onEnter(services);
-                    if (failOnEntry)
+                    if (failOnEntry) {
                         throw failure;
+                    }
                 }
+
                 @Override
                 public void update(double dt, InputState input) {
                     throw failure;
                 }
+
                 @Override
                 public void onExit() {
                     super.onExit();
@@ -241,60 +271,102 @@ class RuntimeTest {
         assertInstanceOf(IllegalStateException.class, failure.get());
         engine.stop();
     }
+
     static class Keys implements InputSource {
+
         boolean consumed;
+
         int clears;
+
         public InputState snapshotAndConsumePressed() {
-            var state = new InputState(Set.of(GameAction.MOVE_UP), consumed ? Set.of() : Set.of(GameAction.PAUSE));
+            var state = new InputState(Set.of(GameAction.MOVE_UP),
+                    consumed ? Set.of() : Set.of(GameAction.PAUSE));
             consumed = true;
             return state;
         }
+
         public void clear() {
             clears++;
             consumed = true;
         }
     }
+
     static class RecordingScene implements Scene {
-        int enters, exits;
+
+        int enters;
+
+        int exits;
+
         EngineServices services;
+
         List<InputState> inputs = new ArrayList<>();
+
         public void onEnter(EngineServices services) {
             this.services = services;
             enters++;
         }
+
         public void update(double dt, InputState input) {
             assertEquals(1.0 / 60, dt);
             inputs.add(input);
         }
-        public void render(Renderer renderer) {}
-        public void onFocusLost() {}
+
+        public void render(Renderer renderer) {
+        }
+
+        public void onFocusLost() {
+        }
+
         public void onExit() {
             exits++;
         }
     }
+
     static class Host implements EngineHost {
+
         int closed;
+
         Throwable error;
+
         Consumer<RuntimeException> failed;
+
         Renderer renderer = new Renderer() {
-            public void drawSprite(SpriteId id, Rect bounds) {}
-            public void drawRectangle(Rect bounds, Rgba color) {}
-            public void drawOutline(Rect bounds, Rgba color) {}
-            public void drawText(String text, Vec2 position, Rgba color) {}
+
+            public void drawSprite(SpriteId id, Rect bounds) {
+            }
+
+            public void drawRectangle(Rect bounds, Rgba color) {
+            }
+
+            public void drawOutline(Rect bounds, Rgba color) {
+            }
+
+            public void drawText(String text, Vec2 position, Rgba color) {
+            }
         };
-        public void open(EngineConfig config, LongConsumer pump, Consumer<Renderer> paint, Runnable focusLost,
-                Runnable closeRequested, Consumer<RuntimeException> failed) {
+
+        public void open(EngineConfig config, LongConsumer pump, Consumer<Renderer> paint,
+                Runnable focusLost, Runnable closeRequested, Consumer<RuntimeException> failed) {
             this.failed = failed;
         }
+
         public Renderer currentRenderer() {
             return renderer;
         }
-        public void setRenderMode(RenderMode mode) {}
-        public void startTimer() {}
-        public void requestRepaint() {}
+
+        public void setRenderMode(RenderMode mode) {
+        }
+
+        public void startTimer() {
+        }
+
+        public void requestRepaint() {
+        }
+
         public void showError(String message, Throwable cause) {
             error = cause;
         }
+
         public void close() {
             closed++;
         }

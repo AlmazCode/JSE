@@ -1,5 +1,9 @@
 package jse.observer;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import java.util.List;
 import jse.demo.ArenaRules;
 import jse.event.BehaviorChanged;
@@ -14,9 +18,9 @@ import jse.world.ObjectKind;
 import jse.world.RemovalReason;
 import jse.world.ThemeId;
 import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.*;
 
 class ObserverTest {
+
     private final EventBus bus = new EventBus();
 
     @Test
@@ -64,8 +68,9 @@ class ObserverTest {
     @Test
     void logKeepsOnlyTheLatestLinesInChronologicalOrder() {
         try (EventLogObserver log = new EventLogObserver(bus, 3)) {
-            for (int i = 1; i <= 5; i++)
+            for (int i = 1; i <= 5; i++) {
                 bus.publish(new BehaviorChanged(1, i, 1, "Chase"));
+            }
             assertEquals(3, log.lines().size());
             assertTrue(log.lines().get(0).startsWith("[tick 3]"));
             assertTrue(log.lines().get(2).startsWith("[tick 5]"));

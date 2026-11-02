@@ -1,10 +1,9 @@
-
 package jse.factory;
 
-import jse.world.ThemeId;
-import jse.world.Player;
 import jse.world.Enemy;
 import jse.world.Pickup;
+import jse.world.Player;
+import jse.world.ThemeId;
 
 public interface GameObjectFamilyFactory {
 

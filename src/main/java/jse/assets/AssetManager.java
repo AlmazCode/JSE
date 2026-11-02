@@ -3,15 +3,16 @@ package jse.assets;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.util.Objects;
-import java.util.Map;
-import java.util.Set;
-import java.util.HashSet;
-import java.util.HashMap;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import javax.imageio.ImageIO;
 
 public final class AssetManager {
+
     private final ClassLoader loader;
     private final BufferedImage placeholder;
     private final Map<SpriteId, BufferedImage> sprites = new HashMap<>();
@@ -36,14 +37,17 @@ public final class AssetManager {
     }
 
     public void preload(Collection<SpriteId> ids) {
-        for (var id : ids) sprites.computeIfAbsent(Objects.requireNonNull(id, "sprite"), this::load);
+        for (var id : ids) {
+            sprites.computeIfAbsent(Objects.requireNonNull(id, "sprite"), this::load);
+        }
     }
 
     public BufferedImage get(SpriteId id) {
         Objects.requireNonNull(id, "sprite");
         var image = sprites.get(id);
-        if (image != null)
+        if (image != null) {
             return image;
+        }
         return placeholder;
     }
 
@@ -51,8 +55,9 @@ public final class AssetManager {
         try (var stream = loader.getResourceAsStream(id.path())) {
             if (stream != null) {
                 var image = ImageIO.read(stream);
-                if (image != null)
+                if (image != null) {
                     return image;
+                }
             }
             warn(id, "Sprite resource is missing or unsupported");
         } catch (IOException exception) {
@@ -62,7 +67,8 @@ public final class AssetManager {
     }
 
     private void warn(SpriteId id, String message) {
-        if (warned.add(id))
+        if (warned.add(id)) {
             logger.log(System.Logger.Level.WARNING, message + ": " + id.path());
+        }
     }
 }

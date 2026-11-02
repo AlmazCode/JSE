@@ -1,10 +1,13 @@
 package jse.input;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import java.util.EnumSet;
 import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.*;
 
 class InputStateTest {
+
     @Test
     void snapshotsDoNotRetainMutableCollections() {
         var keys = EnumSet.of(GameAction.MOVE_UP);

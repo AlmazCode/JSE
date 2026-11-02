@@ -2,11 +2,16 @@ package jse.core;
 
 import java.util.Objects;
 import jse.input.InputSource;
-import jse.render.Renderer;
 import jse.render.RenderMode;
+import jse.render.Renderer;
 
 public final class JseEngine implements EngineControl, AutoCloseable {
-    private enum State { NEW, RUNNING, FAILED, STOPPED }
+
+    private enum State {
+
+        NEW, RUNNING, FAILED, STOPPED
+    }
+
     private final EngineConfig config;
     private final EngineHost host;
     private final InputSource input;
@@ -24,16 +29,18 @@ public final class JseEngine implements EngineControl, AutoCloseable {
     }
 
     public void start(Scene initial) {
-        if (state != State.NEW)
+        if (state != State.NEW) {
             throw new IllegalStateException("Engine can only start once");
+        }
         Objects.requireNonNull(initial, "initialScene");
         owner = Thread.currentThread();
         state = State.RUNNING;
         try {
             host.open(config, this::pump, this::render, this::focusLost, this::stop, this::fail);
             scenes.activate(initial, services());
-            if (state == State.RUNNING)
+            if (state == State.RUNNING) {
                 host.startTimer();
+            }
         } catch (RuntimeException failure) {
             fail(failure);
         }
@@ -45,31 +52,36 @@ public final class JseEngine implements EngineControl, AutoCloseable {
 
     public void pump(long now) {
         checkThread();
-        if (state != State.RUNNING)
+        if (state != State.RUNNING) {
             return;
+        }
         try {
             var plan = clock.advance(now);
             if (applyTransition()) {
-                if (state == State.RUNNING)
+                if (state == State.RUNNING) {
                     host.requestRepaint();
+                }
                 return;
             }
             for (int step = 0; step < plan.steps() && state == State.RUNNING; step++) {
                 scenes.current().update(plan.dt(), input.snapshotAndConsumePressed());
                 completedUpdates++;
-                if (state != State.RUNNING || applyTransition())
+                if (state != State.RUNNING || applyTransition()) {
                     break;
+                }
             }
-            if (state == State.RUNNING)
+            if (state == State.RUNNING) {
                 host.requestRepaint();
+            }
         } catch (RuntimeException failure) {
             fail(failure);
         }
     }
 
     private boolean applyTransition() {
-        if (!scenes.hasPending())
+        if (!scenes.hasPending()) {
             return false;
+        }
         input.clear();
         clock.resetAccumulator();
         return scenes.applyPending(this::services, () -> state == State.RUNNING);
@@ -77,14 +89,16 @@ public final class JseEngine implements EngineControl, AutoCloseable {
 
     public void render(Renderer renderer) {
         checkThread();
-        if (state == State.RUNNING)
+        if (state == State.RUNNING) {
             scenes.current().render(renderer);
+        }
     }
 
     private void focusLost() {
         checkThread();
-        if (state != State.RUNNING)
+        if (state != State.RUNNING) {
             return;
+        }
         try {
             input.clear();
             scenes.current().onFocusLost();
@@ -95,8 +109,9 @@ public final class JseEngine implements EngineControl, AutoCloseable {
 
     private void fail(RuntimeException failure) {
         checkThread();
-        if (state != State.RUNNING)
+        if (state != State.RUNNING) {
             return;
+        }
         state = State.FAILED;
         try {
             scenes.close();
@@ -128,10 +143,12 @@ public final class JseEngine implements EngineControl, AutoCloseable {
 
     @Override
     public void stop() {
-        if (owner != null)
+        if (owner != null) {
             checkThread();
-        if (state == State.STOPPED)
+        }
+        if (state == State.STOPPED) {
             return;
+        }
         state = State.STOPPED;
         RuntimeException failure = null;
         try {
@@ -150,8 +167,9 @@ public final class JseEngine implements EngineControl, AutoCloseable {
         } catch (RuntimeException ex) {
             failure = combine(failure, ex);
         }
-        if (failure != null)
+        if (failure != null) {
             throw failure;
+        }
     }
 
     @Override
@@ -160,26 +178,31 @@ public final class JseEngine implements EngineControl, AutoCloseable {
     }
 
     public EngineStats stats() {
-        if (owner != null)
+        if (owner != null) {
             checkThread();
+        }
         return new EngineStats(completedUpdates, clock.droppedSeconds(), clock.pendingSeconds());
     }
 
     private void requireRunning() {
-        if (state != State.RUNNING)
+        if (state != State.RUNNING) {
             throw new IllegalStateException("Engine is not running");
+        }
     }
 
     private void checkThread() {
-        if (owner != Thread.currentThread())
+        if (owner != Thread.currentThread()) {
             throw new IllegalStateException("Engine must run on its starting thread");
+        }
     }
 
     private static RuntimeException combine(RuntimeException first, RuntimeException next) {
-        if (first == null)
+        if (first == null) {
             return next;
-        if (first != next)
+        }
+        if (first != next) {
             first.addSuppressed(next);
+        }
         return first;
     }
 }

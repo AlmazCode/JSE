@@ -1,10 +1,9 @@
-
 package jse.world;
 
 import java.util.Objects;
 import jse.factory.SpawnRequest;
-import jse.math.Vec2;
 import jse.math.Rect;
+import jse.math.Vec2;
 import jse.render.Graphic;
 
 public abstract class GameObject {
@@ -14,31 +13,22 @@ public abstract class GameObject {
     private Vec2 position;
     private final Vec2 size;
     private Vec2 velocity;
-
     private long id;
     private boolean active;
     private boolean pendingRemoval;
-
     private final Graphic baseGraphic;
     private Graphic graphic;
 
-    protected GameObject(
-            ObjectKind category,
-            ThemeId familyId,
-            SpawnRequest request,
+    protected GameObject(ObjectKind category, ThemeId familyId, SpawnRequest request,
             Graphic baseGraphic) {
-
         this.category = Objects.requireNonNull(category);
         this.familyId = Objects.requireNonNull(familyId);
         Objects.requireNonNull(request);
-
         this.position = request.position();
         this.size = request.size();
         this.velocity = new Vec2(0, 0);
-
         this.baseGraphic = Objects.requireNonNull(baseGraphic);
         this.graphic = baseGraphic;
-
         this.id = 0;
         this.active = false;
         this.pendingRemoval = false;
@@ -69,8 +59,7 @@ public abstract class GameObject {
     }
 
     public Rect bounds() {
-        return new Rect(position.x(), position.y(),
-                        size.x(), size.y());
+        return new Rect(position.x(), position.y(), size.x(), size.y());
     }
 
     public boolean active() {

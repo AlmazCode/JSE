@@ -3,28 +3,30 @@ package jse.demo;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Path;
 import java.nio.file.Files;
-import java.util.Objects;
-import java.util.List;
-import java.util.HashMap;
+import java.nio.file.Path;
 import java.util.Arrays;
-import java.util.Properties;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
+import java.util.Properties;
 import javax.swing.KeyStroke;
-import jse.assets.SpriteId;
 import jse.assets.MissingSpriteStyle;
+import jse.assets.SpriteId;
 import jse.core.EngineConfig;
 import jse.input.GameAction;
-import jse.math.Vec2;
 import jse.math.Rgba;
-import jse.platform.awt.KeyBindings;
+import jse.math.Vec2;
 import jse.platform.awt.HostSettings;
+import jse.platform.awt.KeyBindings;
 import jse.render.RenderMode;
 import jse.render.awt.RenderStyle;
 
-public record LaunchSettings(EngineConfig engine, HostSettings host, KeyBindings keys, RenderStyle render,
-        MissingSpriteStyle placeholder, List<SpriteId> preload, PreviewSettings preview, ShowcaseSettings showcase, GameSettings game) {
+public record LaunchSettings(EngineConfig engine, HostSettings host, KeyBindings keys,
+        RenderStyle render, MissingSpriteStyle placeholder, List<SpriteId> preload,
+        PreviewSettings preview, ShowcaseSettings showcase, GameSettings game) {
+
     public LaunchSettings {
         Objects.requireNonNull(engine, "engine");
         Objects.requireNonNull(host, "host");
@@ -36,29 +38,35 @@ public record LaunchSettings(EngineConfig engine, HostSettings host, KeyBindings
         Objects.requireNonNull(game, "game");
         preload = List.copyOf(preload);
         preview.area(engine);
-        if (render.fontSize() > preview.lineHeight())
+        if (render.fontSize() > preview.lineHeight()) {
             throw new IllegalArgumentException("Font must fit the preview line height");
+        }
     }
 
     public static LaunchSettings load(Path overrides) throws IOException {
         return load(overrides, LaunchArguments.Example.PREVIEW);
     }
 
-    public static LaunchSettings load(Path overrides, LaunchArguments.Example example) throws IOException {
+    public static LaunchSettings load(Path overrides, LaunchArguments.Example example)
+            throws IOException {
         Objects.requireNonNull(example, "example");
         var values = new Properties();
         try (var stream = LaunchSettings.class.getResourceAsStream("/jse.properties")) {
-            if (stream == null)
+            if (stream == null) {
                 throw new IOException("Bundled jse.properties is missing");
+            }
             values.load(new InputStreamReader(stream, StandardCharsets.UTF_8));
         }
         try (var stream = LaunchSettings.class.getResourceAsStream("/showcase.properties")) {
-            if (stream == null)
+            if (stream == null) {
                 throw new IOException("Bundled showcase.properties is missing");
+            }
             values.load(new InputStreamReader(stream, StandardCharsets.UTF_8));
         }
         try (var stream = LaunchSettings.class.getResourceAsStream("/game.properties")) {
-            if (stream == null) throw new IOException("Bundled game.properties is missing");
+            if (stream == null) {
+                throw new IOException("Bundled game.properties is missing");
+            }
             values.load(new InputStreamReader(stream, StandardCharsets.UTF_8));
         }
         if (overrides != null) {
@@ -67,40 +75,47 @@ public record LaunchSettings(EngineConfig engine, HostSettings host, KeyBindings
                 extra.load(reader);
             }
             for (String key : extra.stringPropertyNames()) {
-                if (!values.containsKey(key))
+                if (!values.containsKey(key)) {
                     throw new IllegalArgumentException("Unknown configuration key: " + key);
+                }
                 values.setProperty(key, extra.getProperty(key));
             }
         }
         var reader = new SettingsReader(values);
-        var engine = new EngineConfig(reader.integer("window.width"), reader.integer("window.height"),
-                reader.integer("engine.target_ups"), reader.integer("engine.max_updates_per_pump"),
+        var engine = new EngineConfig(reader.integer("window.width"),
+                reader.integer("window.height"), reader.integer("engine.target_ups"),
+                reader.integer("engine.max_updates_per_pump"),
                 reader.number("engine.max_frame_delta"), reader.integer("engine.timer_delay_ms"));
-        var host = new HostSettings(
-                reader.text("window.title"), reader.color("window.background"), reader.mode("render.mode"));
-        var render = new RenderStyle(reader.text("render.font_family"), reader.integer("render.font_size"),
-                (float) reader.number("render.stroke_width"), reader.color("render.wireframe_color"),
-                reader.bool("render.antialias"));
+        var host = new HostSettings(reader.text("window.title"), reader.color("window.background"),
+                reader.mode("render.mode"));
+        var render = new RenderStyle(reader.text("render.font_family"),
+                reader.integer("render.font_size"), (float) reader.number("render.stroke_width"),
+                reader.color("render.wireframe_color"), reader.bool("render.antialias"));
         var placeholder = new MissingSpriteStyle(reader.integer("assets.placeholder_width"),
-                reader.integer("assets.placeholder_height"), reader.color("assets.placeholder_background"),
+                reader.integer("assets.placeholder_height"),
+                reader.color("assets.placeholder_background"),
                 reader.color("assets.placeholder_mark"));
-        var preload = tokens(values.getProperty("assets.preload"), true).stream().map(SpriteId::new).toList();
+        var preload = tokens(values.getProperty("assets.preload"), true).stream().map(SpriteId::new)
+                .toList();
         var preview = new PreviewSettings(
-                new Vec2(reader.number("preview.object_width"), reader.number("preview.object_height")),
+                new Vec2(reader.number("preview.object_width"),
+                        reader.number("preview.object_height")),
                 reader.number("preview.speed"), reader.number("preview.padding"),
                 reader.number("preview.header_height"), reader.number("preview.line_height"),
                 reader.color("preview.object_color"), reader.color("preview.text_color"),
                 reader.color("preview.muted_color"));
-        return new LaunchSettings(engine, host, bindings(values, example), render, placeholder, preload, preview,
-                ShowcaseSettings.from(values), GameSettings.from(values));
+        return new LaunchSettings(engine, host, bindings(values, example), render, placeholder,
+                preload, preview, ShowcaseSettings.from(values), GameSettings.from(values));
     }
 
     private static KeyBindings bindings(Properties values, LaunchArguments.Example example) {
         var keys = new HashMap<Integer, GameAction>();
         for (String property : values.stringPropertyNames()) {
-            if (!property.startsWith("input."))
+            if (!property.startsWith("input.")) {
                 continue;
-            var action = GameAction.valueOf(property.substring("input.".length()).toUpperCase(Locale.ROOT));
+            }
+            var action = GameAction
+                    .valueOf(property.substring("input.".length()).toUpperCase(Locale.ROOT));
             boolean active = switch (action) {
                 case SWITCH_RENDERER -> true;
                 case QUIT -> example != LaunchArguments.Example.GAME;
@@ -108,38 +123,49 @@ public record LaunchSettings(EngineConfig engine, HostSettings host, KeyBindings
                     example != LaunchArguments.Example.SHOWCASE;
                 case TOGGLE_OUTLINE, TOGGLE_HEALTH_BAR, SWITCH_THEME ->
                     example != LaunchArguments.Example.PREVIEW;
-                case START_ARENA, SHOW_SHOWCASE, BACK_TO_TITLE, SELECT_ENEMY, SWITCH_BEHAVIOR, TOGGLE_LOG -> example == LaunchArguments.Example.GAME;
+                case START_ARENA, SHOW_SHOWCASE, BACK_TO_TITLE, SELECT_ENEMY, SWITCH_BEHAVIOR,
+                        TOGGLE_LOG ->
+                    example == LaunchArguments.Example.GAME;
                 default -> false;
             };
-            if (!active) continue;
+            if (!active) {
+                continue;
+            }
             for (String name : tokens(values.getProperty(property), false)) {
                 var stroke = KeyStroke.getKeyStroke("pressed " + name.toUpperCase(Locale.ROOT));
-                if (stroke == null || stroke.getKeyCode() == 0 || stroke.getModifiers() != 0)
+                if (stroke == null || stroke.getKeyCode() == 0 || stroke.getModifiers() != 0) {
                     throw new IllegalArgumentException("Invalid key for " + property + ": " + name);
+                }
                 var previous = keys.putIfAbsent(stroke.getKeyCode(), action);
-                if (previous != null && previous != action)
+                if (previous != null && previous != action) {
                     throw new IllegalArgumentException("Key assigned to multiple actions: " + name);
+                }
             }
         }
         return new KeyBindings(keys);
     }
 
     private static List<String> tokens(String value, boolean allowEmpty) {
-        if (allowEmpty && value.isBlank())
+        if (allowEmpty && value.isBlank()) {
             return List.of();
+        }
         var result = Arrays.stream(value.split(",", -1)).map(String::trim).toList();
-        if (result.stream().anyMatch(String::isEmpty))
+        if (result.stream().anyMatch(String::isEmpty)) {
             throw new IllegalArgumentException("List entries must not be empty");
+        }
         return result;
     }
 
     record SettingsReader(Properties values) {
+
         String text(String key) {
             var value = values.getProperty(key).trim();
-            if (value.isEmpty())
+            if (value.isEmpty()) {
                 throw new IllegalArgumentException("Empty configuration value: " + key);
+            }
             return value;
         }
+
         int integer(String key) {
             try {
                 return Integer.parseInt(text(key));
@@ -147,6 +173,7 @@ public record LaunchSettings(EngineConfig engine, HostSettings host, KeyBindings
                 throw new IllegalArgumentException("Expected integer for " + key, ex);
             }
         }
+
         double number(String key) {
             try {
                 return Double.parseDouble(text(key));
@@ -154,6 +181,7 @@ public record LaunchSettings(EngineConfig engine, HostSettings host, KeyBindings
                 throw new IllegalArgumentException("Expected number for " + key, ex);
             }
         }
+
         Rgba color(String key) {
             try {
                 return Rgba.parse(text(key));
@@ -161,12 +189,15 @@ public record LaunchSettings(EngineConfig engine, HostSettings host, KeyBindings
                 throw new IllegalArgumentException("Invalid color for " + key, ex);
             }
         }
+
         boolean bool(String key) {
             String value = text(key);
-            if (!value.equals("true") && !value.equals("false"))
+            if (!value.equals("true") && !value.equals("false")) {
                 throw new IllegalArgumentException("Expected true or false for " + key);
+            }
             return Boolean.parseBoolean(value);
         }
+
         RenderMode mode(String key) {
             try {
                 return RenderMode.valueOf(text(key).toUpperCase(Locale.ROOT));

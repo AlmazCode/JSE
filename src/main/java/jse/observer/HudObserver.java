@@ -12,8 +12,11 @@ import jse.event.ItemCollected;
 import jse.event.Subscription;
 import jse.world.Player;
 
-/** Concrete observer holding the numbers a HUD shows, built only from events. */
+/**
+ * Concrete observer holding the numbers a HUD shows, built only from events.
+ */
 public final class HudObserver implements AutoCloseable {
+
     private final List<Subscription> subscriptions = new ArrayList<>();
     private int score;
     private int health;
@@ -35,7 +38,9 @@ public final class HudObserver implements AutoCloseable {
         return health;
     }
 
-    /** Empty while the run is still going; WON or LOST afterwards. */
+    /**
+     * Empty while the run is still going; WON or LOST afterwards.
+     */
     public Optional<ArenaRules.Status> result() {
         return Optional.ofNullable(result);
     }

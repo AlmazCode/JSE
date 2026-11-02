@@ -1,18 +1,23 @@
 package jse.demo;
 
-import java.nio.file.Path;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import java.nio.file.Files;
+import java.nio.file.Path;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
-import static org.junit.jupiter.api.Assertions.*;
 
 class LaunchSettingsTest {
-    @TempDir Path directory;
+
+    @TempDir
+    Path directory;
 
     @Test
     void previewOverridesCanReuseKeysReservedOnlyByTheShowcase() throws Exception {
         var path = directory.resolve("legacy.properties");
-        for (String value : new String[] {"input.move_up=T", "input.pause=F2", "input.restart=F3"}) {
+        for (String value : new String[]{"input.move_up=T", "input.pause=F2", "input.restart=F3"}) {
             Files.writeString(path, value);
             assertDoesNotThrow(() -> LaunchSettings.load(path), value);
         }

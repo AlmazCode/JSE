@@ -1,18 +1,19 @@
 package jse.render.awt;
 
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
-import java.awt.BasicStroke;
-import java.awt.RenderingHints;
 import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 import java.awt.geom.Rectangle2D;
 import java.util.Objects;
 import jse.assets.AssetManager;
-import jse.math.Vec2;
 import jse.math.Rect;
 import jse.math.Rgba;
+import jse.math.Vec2;
 
 public abstract class AbstractFrameRenderer implements FrameRenderer {
+
     protected final AssetManager assets;
     protected final RenderStyle style;
     private final Font font;
@@ -28,15 +29,19 @@ public abstract class AbstractFrameRenderer implements FrameRenderer {
 
     @Override
     public final void beginFrame(Graphics2D graphics, int width, int height) {
-        if (frame != null)
+        if (frame != null) {
             throw new IllegalStateException("A frame is already active");
-        if (width <= 0 || height <= 0)
+        }
+        if (width <= 0 || height <= 0) {
             throw new IllegalArgumentException("Frame dimensions must be positive");
+        }
         frame = Objects.requireNonNull(graphics, "graphics");
         frame.setFont(font);
         frame.setStroke(stroke);
         frame.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
-                style.antialias() ? RenderingHints.VALUE_ANTIALIAS_ON : RenderingHints.VALUE_ANTIALIAS_OFF);
+                style.antialias()
+                        ? RenderingHints.VALUE_ANTIALIAS_ON
+                        : RenderingHints.VALUE_ANTIALIAS_OFF);
     }
 
     @Override
@@ -45,8 +50,9 @@ public abstract class AbstractFrameRenderer implements FrameRenderer {
     }
 
     protected final Graphics2D frame() {
-        if (frame == null)
+        if (frame == null) {
             throw new IllegalStateException("Drawing requires an active frame");
+        }
         return frame;
     }
 
@@ -69,6 +75,7 @@ public abstract class AbstractFrameRenderer implements FrameRenderer {
     public final void drawText(String text, Vec2 position, Rgba color) {
         var graphics = frame();
         graphics.setColor(color(color));
-        graphics.drawString(Objects.requireNonNull(text, "text"), (float) position.x(), (float) position.y());
+        graphics.drawString(Objects.requireNonNull(text, "text"), (float) position.x(),
+                (float) position.y());
     }
 }

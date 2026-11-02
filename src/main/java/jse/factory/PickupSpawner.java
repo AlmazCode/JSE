@@ -1,4 +1,3 @@
-
 package jse.factory;
 
 import jse.world.ObjectKind;

@@ -1,21 +1,27 @@
 package jse.platform.awt;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import java.awt.event.KeyEvent;
 import java.util.Map;
 import javax.swing.JComponent;
-import javax.swing.SwingUtilities;
 import javax.swing.JPanel;
 import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
 import jse.input.GameAction;
 import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.*;
 
 class SwingInputSourceTest {
+
     @Test
     void physicalAliasesAndKeyRepeatDoNotDuplicateLogicalPresses() throws Exception {
         SwingUtilities.invokeAndWait(() -> {
-            var source = new SwingInputSource(new KeyBindings(Map.of(KeyEvent.VK_W, GameAction.MOVE_UP, KeyEvent.VK_UP,
-                    GameAction.MOVE_UP, KeyEvent.VK_P, GameAction.PAUSE)));
+            var source = new SwingInputSource(
+                    new KeyBindings(Map.of(KeyEvent.VK_W, GameAction.MOVE_UP, KeyEvent.VK_UP,
+                            GameAction.MOVE_UP, KeyEvent.VK_P, GameAction.PAUSE)));
             source.press(KeyEvent.VK_W);
             assertTrue(source.snapshotAndConsumePressed().isPressed(GameAction.MOVE_UP));
             source.press(KeyEvent.VK_UP);
@@ -32,13 +38,15 @@ class SwingInputSourceTest {
             assertTrue(source.snapshotAndConsumePressed().held().isEmpty());
         });
     }
+
     @Test
     void unbindRestoresExistingBindingsAndFocusTraversal() throws Exception {
         SwingUtilities.invokeAndWait(() -> {
             var panel = new JPanel();
             var stroke = KeyStroke.getKeyStroke(KeyEvent.VK_P, 0, false);
             panel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(stroke, "previous");
-            var source = new SwingInputSource(new KeyBindings(Map.of(KeyEvent.VK_P, GameAction.PAUSE)));
+            var source = new SwingInputSource(
+                    new KeyBindings(Map.of(KeyEvent.VK_P, GameAction.PAUSE)));
             source.bind(panel);
             assertFalse(panel.getFocusTraversalKeysEnabled());
             Object action = panel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).get(stroke);
@@ -46,7 +54,8 @@ class SwingInputSourceTest {
             assertTrue(source.snapshotAndConsumePressed().isPressed(GameAction.PAUSE));
             source.unbind();
             source.unbind();
-            assertEquals("previous", panel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).get(stroke));
+            assertEquals("previous",
+                    panel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).get(stroke));
             assertTrue(panel.getFocusTraversalKeysEnabled());
             assertNull(panel.getActionMap().get(action));
         });

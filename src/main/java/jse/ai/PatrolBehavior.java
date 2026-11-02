@@ -7,10 +7,11 @@ import jse.world.WorldView;
 
 /**
  * Walks back and forth between two waypoints. On the last step it slows down so it never
- * overshoots, and it switches to the other waypoint on the following update. Each enemy needs
- * its own instance because the current target is state.
+ * overshoots, and it switches to the other waypoint on the following update. Each enemy needs its
+ * own instance because the current target is state.
  */
 public final class PatrolBehavior implements BehaviorStrategy {
+
     private final Vec2 first;
     private final Vec2 second;
     private boolean headingToSecond = true;
@@ -30,8 +31,9 @@ public final class PatrolBehavior implements BehaviorStrategy {
             return Vec2.ZERO;
         }
         double step = Math.min(enemy.speed(), distance / dt);
-        if (distance <= enemy.speed() * dt)
+        if (distance <= enemy.speed() * dt) {
             headingToSecond = !headingToSecond;
+        }
         return toTarget.normalized().scale(step);
     }
 

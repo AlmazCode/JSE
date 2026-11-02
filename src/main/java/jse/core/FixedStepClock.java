@@ -1,7 +1,10 @@
 package jse.core;
 
 final class FixedStepClock {
-    record FramePlan(int steps, double dt) {}
+
+    record FramePlan(int steps, double dt) {
+    }
+
     private final EngineConfig config;
     private boolean initialized;
     private long previous;
@@ -11,6 +14,7 @@ final class FixedStepClock {
     FixedStepClock(EngineConfig config) {
         this.config = config;
     }
+
     FramePlan advance(long now) {
         double dt = config.fixedDeltaSeconds();
         if (!initialized) {
@@ -19,8 +23,9 @@ final class FixedStepClock {
             return new FramePlan(0, dt);
         }
         long elapsed = now - previous;
-        if (elapsed < 0)
+        if (elapsed < 0) {
             throw new IllegalArgumentException("Clock must advance monotonically");
+        }
         previous = now;
         double seconds = elapsed / 1_000_000_000.0;
         double accepted = Math.min(seconds, config.maxFrameDeltaSeconds());
@@ -32,12 +37,15 @@ final class FixedStepClock {
         pending = Math.max(0, pending - available * dt);
         return new FramePlan(steps, dt);
     }
+
     void resetAccumulator() {
         pending = 0;
     }
+
     double pendingSeconds() {
         return pending;
     }
+
     double droppedSeconds() {
         return dropped;
     }

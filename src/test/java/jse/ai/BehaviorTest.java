@@ -1,5 +1,11 @@
 package jse.ai;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import java.util.ArrayList;
 import java.util.List;
 import jse.event.BehaviorChanged;
@@ -11,9 +17,9 @@ import jse.world.Enemy;
 import jse.world.World;
 import jse.world.WorldView;
 import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.*;
 
 class BehaviorTest {
+
     private static final double DT = 1.0 / 60;
     private final EventBus bus = new EventBus();
     private final World world = Fixtures.world(bus);
@@ -65,7 +71,8 @@ class BehaviorTest {
         assertEquals(100, velocity.x(), 1e-9);
         assertEquals(0, velocity.y(), 1e-9);
         enemy.setPosition(new Vec2(300, 100));
-        assertEquals(Vec2.ZERO, flee.desiredVelocity(enemy, world.view(), DT), "distance 200 > radius 180");
+        assertEquals(Vec2.ZERO, flee.desiredVelocity(enemy, world.view(), DT),
+                "distance 200 > radius 180");
     }
 
     @Test
@@ -86,10 +93,12 @@ class BehaviorTest {
     void everyStrategyRejectsInvalidDt() {
         Fixtures.TestEnemy enemy = addEnemy(10, 10);
         WorldView view = world.view();
-        for (BehaviorStrategy strategy : List.of(new IdleBehavior(), new ChaseBehavior(), new FleeBehavior(),
-                new PatrolBehavior(Vec2.ZERO, new Vec2(5, 5)))) {
-            assertThrows(IllegalArgumentException.class, () -> strategy.desiredVelocity(enemy, view, 0));
-            assertThrows(IllegalArgumentException.class, () -> strategy.desiredVelocity(enemy, view, Double.NaN));
+        for (BehaviorStrategy strategy : List.of(new IdleBehavior(), new ChaseBehavior(),
+                new FleeBehavior(), new PatrolBehavior(Vec2.ZERO, new Vec2(5, 5)))) {
+            assertThrows(IllegalArgumentException.class,
+                    () -> strategy.desiredVelocity(enemy, view, 0));
+            assertThrows(IllegalArgumentException.class,
+                    () -> strategy.desiredVelocity(enemy, view, Double.NaN));
         }
     }
 
@@ -99,7 +108,8 @@ class BehaviorTest {
         PatrolBehavior patrol = new PatrolBehavior(new Vec2(100, 100), new Vec2(100.5, 100));
         enemy.setBehavior(patrol);
         Vec2 arrival = patrol.desiredVelocity(enemy, world.view(), DT);
-        assertEquals(0.5 / DT, arrival.x(), 1e-6, "must not overshoot: distance / dt, not full speed");
+        assertEquals(0.5 / DT, arrival.x(), 1e-6,
+                "must not overshoot: distance / dt, not full speed");
         enemy.setPosition(new Vec2(100.5, 100));
         Vec2 back = patrol.desiredVelocity(enemy, world.view(), DT);
         assertTrue(back.x() < 0, "target switches for the following update");
@@ -120,10 +130,12 @@ class BehaviorTest {
             motion.update(world, DT);
             assertTrue(enemy.position().x() >= 50 - 1e-9 && enemy.position().x() <= 250 + 1e-9,
                     "never leaves the waypoint segment, step " + step);
-            if (Math.abs(enemy.position().x() - 250) < 1e-6)
+            if (Math.abs(enemy.position().x() - 250) < 1e-6) {
                 reachedB = true;
-            if (reachedB && Math.abs(enemy.position().x() - 50) < 1e-6)
+            }
+            if (reachedB && Math.abs(enemy.position().x() - 50) < 1e-6) {
                 returnedToA = true;
+            }
         }
         assertTrue(reachedB && returnedToA);
     }
@@ -136,9 +148,11 @@ class BehaviorTest {
         PatrolBehavior p2 = new PatrolBehavior(new Vec2(50, 150), new Vec2(60, 150));
         first.setBehavior(p1);
         second.setBehavior(p2);
-        first.setPosition(new Vec2(60, 50)); // first reaches its target and turns around
+        // first reaches its target and turns around
+        first.setPosition(new Vec2(60, 50));
         p1.desiredVelocity(first, world.view(), 1);
-        assertTrue(p2.desiredVelocity(second, world.view(), DT).x() > 0, "second patrol is unaffected");
+        assertTrue(p2.desiredVelocity(second, world.view(), DT).x() > 0,
+                "second patrol is unaffected");
     }
 
     @Test
@@ -159,15 +173,12 @@ class BehaviorTest {
         AiSystem ai = new AiSystem(bus);
         long id = enemy.id();
         Vec2 position = enemy.position();
-
         assertTrue(ai.changeBehavior(world, id, new ChaseBehavior(), 3));
         ai.update(world, world.view(), DT);
         assertTrue(enemy.velocity().y() > 0, "chasing: towards the player below");
-
         assertTrue(ai.changeBehavior(world, id, new FleeBehavior(), 4));
         ai.update(world, world.view(), DT);
         assertTrue(enemy.velocity().y() < 0, "fleeing: away from the player");
-
         assertEquals(id, enemy.id());
         assertEquals(position, enemy.position());
         assertEquals(world.familyId(), enemy.familyId());
@@ -180,12 +191,10 @@ class BehaviorTest {
         bus.subscribe(BehaviorChanged.class, seen::add);
         AiSystem ai = new AiSystem(bus);
         BehaviorStrategy chase = new ChaseBehavior();
-
         assertTrue(ai.changeBehavior(world, enemy.id(), chase, 7));
-        assertFalse(ai.changeBehavior(world, enemy.id(), chase, 8), "same instance: no replacement");
+        assertFalse(ai.changeBehavior(world, enemy.id(), chase, 8),
+                "same instance: no replacement");
         assertFalse(ai.changeBehavior(world, 999, new FleeBehavior(), 9), "unknown enemy");
-
-
         assertEquals(1, seen.size());
         assertEquals("Chase", seen.get(0).behaviorName());
         assertEquals(enemy.id(), seen.get(0).enemyId());

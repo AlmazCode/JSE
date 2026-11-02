@@ -1,12 +1,13 @@
 package jse.render.awt;
 
 import java.awt.geom.AffineTransform;
-import jse.assets.SpriteId;
 import jse.assets.AssetManager;
+import jse.assets.SpriteId;
 import jse.math.Rect;
 import jse.math.Rgba;
 
 public final class FilledRenderer extends AbstractFrameRenderer {
+
     public FilledRenderer(AssetManager assets, RenderStyle style) {
         super(assets, style);
     }
