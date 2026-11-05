@@ -10,7 +10,7 @@ Roziyeva Yasmina
 
 Java Simple Engine is a Java desktop application built around a small collection game. A player moves through an arena, collects pickups and loses health on enemy contact. The same objects can be drawn with two renderer styles, decorated with optional outlines and health bars, and recreated as a Forest or Space family. Enemy movement can change during a run. A separate event log can be disconnected while the score and health display continues to update.
 
-The project uses these interactions to examine six design patterns in working code: Factory Method, Abstract Factory, Bridge, Decorator, Strategy and Observer. The report explains the boundaries between them, traces a pickup through the update cycle, and records the checks performed on the application. The final suite contains {TEST_COUNT} tests in {TEST_CLASSES} classes, with no failures, errors or skipped tests. Desktop checks cover {ROUTE_CYCLES} navigation cycles on {PLATFORM} with Java {DESKTOP_JAVA}. The runtime needs only the JDK; the source build uses Maven Wrapper and JUnit for tests.
+The project uses these interactions to examine six design patterns in working code: Factory Method, Abstract Factory, Bridge, Decorator, Strategy and Observer. The report explains the boundaries between them, traces a pickup through the update cycle, and records the checks performed on the application. The final suite contains {TEST_COUNT} tests in {TEST_CLASSES} classes, with no failures, errors or skipped tests. The runtime needs only the JDK; the source build uses Maven Wrapper and JUnit for tests.
 
 <!-- contents -->
 
