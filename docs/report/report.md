@@ -216,6 +216,8 @@ Further work should start with those constraints. A bounded event queue would ne
 
 The table records the agreed pattern responsibilities. Integration changes connect these areas; Git history records the actual commits. It does not imply exclusive authorship of every file in an area.
 
+Source repository: [github.com/AlmazCode/JSE](https://github.com/AlmazCode/JSE). The main branch contains the application source, tests and build instructions.
+
 Build the extracted source using a JDK 17 or newer. The first Wrapper build needs network access for Maven and build dependencies. The packaged JAR then runs offline with its bundled sprites. A graphical desktop is required for the application; tests and --help also work in headless mode.
 
 ```sh
