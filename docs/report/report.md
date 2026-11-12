@@ -10,7 +10,7 @@ Roziyeva Yasmina
 
 Java Simple Engine is a Java desktop application built around a small collection game. A player moves through an arena, collects pickups and loses health on enemy contact. The same objects can be drawn with two renderer styles, decorated with optional outlines and health bars, and recreated as a Forest or Space family. Enemy movement can change during a run. A separate event log can be disconnected while the score and health display continues to update.
 
-The project uses these interactions to examine six design patterns in working code: Factory Method, Abstract Factory, Bridge, Decorator, Strategy and Observer. The report explains the boundaries between them, traces a pickup through the update cycle, and records the checks performed on the application. The final suite contains {TEST_COUNT} tests in {TEST_CLASSES} classes, with no failures, errors or skipped tests. The runtime needs only the JDK; the source build uses Maven Wrapper and JUnit for tests.
+The project uses these interactions to examine six design patterns in working code: Factory Method, Abstract Factory, Bridge, Decorator, Strategy and Observer. The report explains the boundaries between them, identifies concrete applications and limits of the five SOLID principles, traces a pickup through the update cycle, and records the checks performed on the application. The final suite contains {TEST_COUNT} tests in {TEST_CLASSES} classes, with no failures, errors or skipped tests. The runtime needs only the JDK; the source build uses Maven Wrapper and JUnit for tests.
 
 <!-- contents -->
 
@@ -56,6 +56,30 @@ A drawing frame has a shorter lifetime. GamePanel copies the supplied Graphics2D
 ArenaRun first checks whether the session is paused or finished. For an active update, it calculates player velocity, asks every enemy strategy for a velocity using one pre-motion WorldView, moves entities, finds overlaps, applies rules, commits queued additions and removals, and evaluates the outcome. The order matters: a collected pickup becomes unavailable immediately, while its removal event follows the collection event at commit time. Loss takes priority when health reaches zero on the same update that reaches the target score.
 
 <!-- source: src/main/java/jse/demo/ArenaRun.java | public void advance( | The arena update order. -->
+
+### 2.4 SOLID principles and their limits
+
+SOLID describes five principles for assigning responsibilities and managing dependencies [7,8]. JSE provides concrete examples of all five at specific class boundaries. The assessment below concerns the behavior and contracts of the existing code; the presence of a design pattern or an interface alone does not establish compliance.
+
+| Principle | Main implementation evidence | Practical effect |
+| --- | --- | --- |
+| S: Single Responsibility | AiSystem, MotionSystem, CollisionSystem, ArenaRules | Changing a movement decision, overlap algorithm or scoring rule affects a different responsibility. |
+| O: Open/Closed | BehaviorStrategy, Graphic, GraphicDecorator | New algorithms and visual layers can extend existing clients through their contracts. |
+| L: Liskov Substitution | Forest/Space products; BehaviorStrategy implementations | Clients can use alternative implementations while retaining the shared behavioral contract. |
+| I: Interface Segregation | HealthView; Renderer and FrameRenderer; EngineControl | A client receives the operations relevant to its role without depending on the full implementation API. |
+| D: Dependency Inversion | JseEngine, Graphic, EntitySpawner | Runtime, drawing and spawning clients depend on abstractions supplied by application composition. |
+
+**S — Single Responsibility Principle.** Responsibilities that change for different reasons should be separated. AiSystem applies velocity decisions, MotionSystem integrates velocity into position, and CollisionSystem finds geometric overlaps. ArenaRules alone gives those overlaps game consequences, including collection, damage cooldown and outcome priority. Changing contact damage therefore does not require changing overlap detection or movement. Presentation changes belong to graphics and observers. ArenaRun coordinates these responsibilities and owns their lifetime rather than implementing every algorithm itself.
+
+**O — Open/Closed Principle.** A module should support extension through a stable contract without requiring its existing algorithm to be rewritten for each variant. A new BehaviorStrategy can supply another desiredVelocity implementation while AiSystem.update continues to invoke the same method. GraphicDecorator similarly permits an additional drawing layer around a Graphic without editing SpriteGraphic or RectangleGraphic. This extensibility has a defined scope: exposing a new behavior in the demo still requires updating ArenaRun's selection logic, and the current GraphicLayers.compose explicitly selects the two bundled decorators. Adding a product category also requires updating GameObjectFamilyFactory and both concrete factories.
+
+**L — Liskov Substitution Principle.** A subtype must remain usable through its base contract, including its behavioral expectations. ForestPlayer and SpacePlayer can both be treated as Player: the same health and damage operations apply regardless of artwork or ThemeId. World's matching-family invariant still applies. FamilyFactoryTest exercises both factories with the same product, health and drawing assertions. The strategy boundary has a similar contract: for a valid enemy, world snapshot and positive finite dt, each bundled strategy returns a non-null velocity and leaves position updates to MotionSystem. Patrol may change its own target state, but it does not move the enemy directly. These examples support substitutability at the tested boundaries; inheritance alone would not prove it.
+
+**I — Interface Segregation Principle.** Clients should depend on operations relevant to their own work. HealthBarDecorator reads only currentHealth and maxHealth through HealthView; it does not need Player's damage, movement or registration operations. Graphic uses Renderer for drawing primitives. FrameRenderer extends that contract with beginFrame and endFrame for the desktop frame owner, so graphic classes do not manage Graphics2D lifetime. Scenes receive EngineControl for navigation, render-mode selection and stopping; they do not require the window-management operations of EngineHost.
+
+**D — Dependency Inversion Principle.** Policy code should depend on abstractions rather than concrete platform or product implementations. JseEngine accepts EngineHost and InputSource and executes a Scene; it does not construct a SwingHost or a particular arena. Graphic depends on Renderer, and EntitySpawner depends on GameObjectFamilyFactory. DemoApplication and the game composition code choose the concrete implementations and supply them through constructors. This also lets runtime tests provide a fake host without opening a window. Constructor injection supplies the dependencies; their abstract types establish the relevant dependency direction.
+
+These principles are applied locally rather than claimed as a property of every dependency. GameObject still references Graphic, and simulation publishers use the concrete EventBus. The model is therefore not entirely independent of presentation, and the event subsystem is not universally abstracted. The six patterns discussed next explain how the existing boundaries support the intended changes.
 
 ## 3. Rendering without entity subclasses
 
@@ -251,5 +275,9 @@ For a short demonstration, enter the arena, pause, switch F1/F2/F3 and show that
 [5] Google. Google Java Style Guide. [Coding conventions](https://google.github.io/styleguide/javaguide.html).
 
 [6] JUnit Team. Contributing: coding conventions and formatting. [Maintainer guidance](https://github.com/junit-team/junit-framework/blob/main/CONTRIBUTING.md).
+
+[7] Martin, R. C. Design Principles and Design Patterns. 2000. [Author's paper](https://objectmentor.com/resources/articles/Principles_and_Patterns.pdf).
+
+[8] Martin, R. C. The Single Responsibility Principle. The Clean Code Blog, 8 May 2014. [Author's explanation](https://blog.cleancoder.com/uncle-bob/2014/05/08/SingleReponsibilityPrinciple.html).
 
 Source listings are extracted from the repository when the report is generated. UML files and original screenshot captures are included with the source.
